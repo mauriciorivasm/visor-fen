@@ -1,0 +1,72 @@
+[
+  {
+    "key": "ee_recursos_respuesta",
+    "label": "Bomberos y comisarías",
+    "geom": "point",
+    "count": 35,
+    "expuestos": 26
+  },
+  {
+    "key": "ee_transmision",
+    "label": "Línea de transmisión",
+    "geom": "line",
+    "count": 34,
+    "expuestos": 27
+  },
+  {
+    "key": "ee_penitenciarias",
+    "label": "Penitenciarías",
+    "geom": "point",
+    "count": 1,
+    "expuestos": 1
+  },
+  {
+    "key": "ee_central_hidraulica",
+    "label": "Central hidráulica",
+    "geom": "point",
+    "count": 4,
+    "expuestos": 0
+  },
+  {
+    "key": "ee_hidrocarburos",
+    "label": "Establecimientos hidrocarburos",
+    "geom": "point",
+    "count": 106,
+    "expuestos": 83
+  },
+  {
+    "key": "ee_glp",
+    "label": "Envasadora de GLP",
+    "geom": "point",
+    "count": 10,
+    "expuestos": 5
+  },
+  {
+    "key": "ee_ductos",
+    "label": "Gasoducto/oleoducto/poliducto",
+    "geom": "line",
+    "count": 2,
+    "expuestos": 2
+  },
+  {
+    "key": "ee_agencias",
+    "label": "Agencias bancarias",
+    "geom": "point",
+    "count": 56,
+    "expuestos": 36
+  },
+  {
+    "key": "ee_ferroviaria",
+    "label": "Red ferroviaria",
+    "geom": "line",
+    "count": 4,
+    "expuestos": 4
+  },
+  {
+    "key": "ee_sanitaria",
+    "label": "Infraestructura sanitaria",
+    "geom": "line",
+    "count": 5,
+    "expuestos": 3
+  }
+]

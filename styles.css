@@ -1,0 +1,174 @@
+:root{--red:#ff0000;--black:#111;--ink:#242424;--muted:#69717c;--line:#ddd;--panel:#fff;--bg:#f4f4f4;--darkpoint:#3d4650;--soft:#f7f7f7}*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Arial,Calibri,sans-serif;color:var(--ink);background:var(--bg);font-size:15px}.topbar{height:82px;background:#fff;display:flex;justify-content:space-between;align-items:center;padding:12px 24px;border-bottom:1px solid #ddd}.brand{display:flex;align-items:center;gap:15px}.brand img{height:43px;width:auto}.brand-divider{height:38px;width:1px;background:#ccc}.brand strong{display:block;font-size:20px;letter-spacing:.6px}.brand span{display:block;font-size:14px;color:#666;margin-top:3px}.scenario{display:flex;align-items:center;gap:12px;font-weight:700}.segmented{display:flex;border:1px solid #bbb;border-radius:7px;overflow:hidden}.segmented button{background:white;border:0;border-right:1px solid #ddd;padding:10px 14px;font-size:14px;cursor:pointer}.segmented button:last-child{border-right:0}.segmented button.active{background:var(--red);color:white}.warning{background:#111;color:white;padding:7px 24px;font-size:13px}.tabs{height:46px;background:white;border-bottom:1px solid #ddd;padding-left:24px}.tab{height:46px;border:0;background:transparent;padding:0 20px;font-weight:700;font-size:15px;cursor:pointer;border-bottom:3px solid transparent}.tab.active{color:var(--red);border-bottom-color:var(--red)}main{height:calc(100vh - 189px)}.view{display:none;height:100%}.view.active{display:grid}.three-col{grid-template-columns:285px minmax(0,1fr) 285px}.detail-layout{grid-template-columns:300px minmax(0,1fr) 340px}.sidebar{background:#fff;overflow-y:auto;border-right:1px solid #ddd}.right-sidebar,.exposure-list-panel{border-right:0;border-left:1px solid #ddd}.sidebar details{border-bottom:1px solid #e5e5e5}.sidebar summary{font-weight:800;font-size:15px;padding:16px 17px;cursor:pointer;list-style:none;position:relative}.sidebar summary:after{content:'+';position:absolute;right:17px}.sidebar details[open] summary:after{content:'–'}.panel-body{padding:0 17px 18px}.panel-body label{display:block;font-size:13px;font-weight:700;margin:0 0 12px}.panel-body select{width:100%;padding:9px;border:1px solid #cfcfcf;border-radius:5px;background:#fff;font-size:14px;margin-top:5px}.help{font-size:13px;line-height:1.45;color:#555}.map-wrap{position:relative;min-width:0}.map-wrap>div[id^=map]{height:100%;width:100%}.leaflet-tile{filter:grayscale(1) contrast(.82) brightness(1.08);opacity:.72!important}.kpis{position:absolute;z-index:650;left:14px;right:14px;bottom:14px;display:flex;gap:8px;overflow-x:auto;pointer-events:none}.kpi{background:rgba(255,255,255,.96);border:1px solid #ddd;border-top:3px solid var(--red);border-radius:6px;min-width:122px;padding:9px 11px;box-shadow:0 2px 8px #0002}.kpi b{font-size:19px;display:block}.kpi span{font-size:11px;color:#666;display:block;margin-top:2px}.multi{border:1px solid #d4d4d4;border-radius:6px;background:#fff;margin-bottom:13px}.multi-head{display:flex;justify-content:space-between;align-items:center;padding:8px 9px;border-bottom:1px solid #eee;font-size:13px;font-weight:700}.multi-actions button{border:0;background:transparent;color:#666;font-size:11px;cursor:pointer;padding:2px 4px}.multi-options{max-height:150px;overflow:auto;padding:6px 8px}.multi-options label{display:flex;gap:7px;align-items:flex-start;font-weight:400;font-size:12.5px;margin:5px 0;line-height:1.25}.multi-options input{margin-top:2px}.filter-label{font-size:12px;font-weight:800;margin-bottom:5px}.checks label{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:13px;font-weight:600}.muted{color:#737b84;font-size:12.5px;line-height:1.4}.hidden{display:none!important}.legend-row{display:flex;align-items:center;gap:8px;font-size:12px;margin:6px 0}.swatch{width:18px;height:12px;border:1px solid #aaa}.critical-legend{font-size:12px;line-height:1.8;margin-top:10px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}.dot.black{background:#111}.dot.gray{background:#9a9a9a}.zone-label{background:transparent;border:0;box-shadow:none;text-align:center}.zone-label .abbr{font-weight:900;font-size:13px;color:#232323;text-shadow:0 1px 2px #fff,0 0 3px #fff}.zone-label .zone{font-size:10px;color:#333;background:rgba(255,255,255,.72);padding:1px 3px;border-radius:2px;white-space:nowrap}.leaflet-popup-content{font-size:13px;line-height:1.4;min-width:230px}.popup-grid{display:grid;grid-template-columns:1fr auto;gap:4px 10px;margin-top:8px}.popup-grid b{text-align:right}.popup-url{display:inline-block;margin-top:8px;color:#c00;font-weight:700}.list-head{padding:16px;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;align-items:flex-start}.list-head h2{font-size:17px;margin:0}.list-head p{font-size:11.5px;color:#666;margin:4px 0 0}.pill{background:#111;color:#fff;border-radius:14px;padding:4px 9px;font-size:12px}.affected-list{height:calc(100% - 78px);overflow-y:auto;padding:6px 10px 20px}.affected-item{border-bottom:1px solid #e6e6e6;padding:10px 7px;display:grid;grid-template-columns:29px 1fr;gap:8px}.rank{width:26px;height:26px;border-radius:50%;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px}.affected-item h4{margin:0;font-size:13px;line-height:1.25}.affected-item .meta{font-size:11.5px;color:#666;margin-top:4px}.rating{display:inline-flex;gap:2px;margin-left:5px}.star{color:#bbb}.star.on{color:#111}.empty-list{padding:25px 10px;text-align:center;color:#777;font-size:13px}.point-card{background:#f7f7f7;padding:12px;border-radius:6px;margin-top:8px}.point-card h3{font-size:14px;margin:4px 0}.tag{font-size:10px;background:#111;color:#fff;padding:3px 6px;border-radius:10px}.point-card dl{display:grid;grid-template-columns:70px 1fr;font-size:11.5px;margin:8px 0}.point-card dt{color:#777}.point-card dd{margin:0;font-weight:700}.btn-clear{width:100%;padding:8px;border:1px solid #bbb;background:#fff;border-radius:5px;font-weight:700;font-size:12px;cursor:pointer}.btn-clear:hover{border-color:#000}@media(max-width:1100px){.three-col,.detail-layout{grid-template-columns:240px minmax(0,1fr) 280px}.brand span{display:none}.scenario span{display:none}}@media(max-width:800px){.topbar{height:auto;gap:10px;align-items:flex-start;flex-direction:column}.warning,.tabs{display:none}main{height:calc(100vh - 146px)}.three-col,.detail-layout{grid-template-columns:1fr}.sidebar{display:none}.map-wrap{height:100%}}
+.srcbar{height:26px;line-height:26px;background:#fff;border-top:1px solid #ddd;padding:0 24px;font-size:11.5px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.srcbar b{color:#555;font-weight:700}
+
+.build-badge{float:right;font-weight:800;letter-spacing:.4px;color:#fff;background:#444;border-radius:10px;padding:1px 7px;font-size:10px}
+/* V2.2: símbolo inequívoco para puntos críticos en vista detalle */
+.critical-x-wrap { background: transparent !important; border: 0 !important; }
+.critical-x { display:block; font-family:Arial,sans-serif; font-weight:900; line-height:1; text-align:center; text-shadow:0 0 2px #fff,0 0 2px #fff; transform:scaleX(1.15); }
+
+/* V2.3: control para reajustar el encuadre del mapa */
+.map-reset{
+  position:absolute; z-index:700; top:14px; right:14px;
+  border:1px solid #b8b8b8; background:rgba(255,255,255,.96); color:#222;
+  border-radius:6px; padding:8px 11px; font-size:12px; font-weight:800;
+  cursor:pointer; box-shadow:0 2px 7px #0002;
+}
+.map-reset:hover{border-color:#111;background:#fff}
+
+/* V3 prototipo · Cartera priorizada */
+.proto-badge{font-size:9px;font-weight:800;letter-spacing:.3px;color:#fff;background:var(--red);border-radius:9px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.wrow{margin:0 0 13px}
+.wlab{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;margin-bottom:4px;line-height:1.2}
+.wlab>span{display:flex;align-items:center;gap:6px}
+.wlab b{font-size:12px;color:#111}
+.wdot{width:9px;height:9px;border-radius:2px;display:inline-block;flex:0 0 auto}
+.pend{font-weight:700;font-size:9px;color:#8a8f97;background:#eef0f2;border-radius:8px;padding:1px 5px}
+.wrow input[type=range]{width:100%;accent-color:var(--red);margin:0}
+.scorebar{display:flex;height:7px;border-radius:4px;overflow:hidden;margin:7px 0 5px;background:#eee}
+.scorebar .sb{display:block;min-width:1px}
+.ctag{font-size:9.5px;font-weight:800;padding:2px 6px;border-radius:9px;color:#fff}
+.ctag.perm{background:#111}
+.ctag.temp{background:#b06a00}
+.medida{font-size:11px;color:#555;margin-top:5px;line-height:1.35;border-left:2px solid var(--red);padding-left:7px}
+.prioriza-item{cursor:pointer}
+.prioriza-item:hover{background:#faf5f5}
+.prioriza-item.sel{background:#fff2f2;box-shadow:inset 3px 0 0 var(--red)}
+
+/* V3 · chasis de ranuras estilo focalizador */
+.scope-toggle{padding:13px 15px;border-bottom:1px solid #e5e5e5;background:#fff}
+.scope-toggle>span{display:block;font-size:11.5px;font-weight:800;letter-spacing:.05em;margin-bottom:7px}
+.scope-toggle .segmented{width:100%}
+.scope-toggle .segmented button{flex:1;padding:8px 6px;font-size:12.5px;font-weight:700}
+.scope-toggle .slot-hint{margin:8px 0 0}
+.slot-hint{font-size:11px;color:#737b84;line-height:1.4;margin:6px 0 0}
+.res.pend b{color:#c9ccd1}
+/* V4 · Vista 2 unidades expuestas */
+.v2-item .rank{color:#fff}
+.v2-item .prev-k{font-weight:800;color:#4a5058}
+.pend-slot{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#9aa0a8;margin:6px 0}
+.pend .pend,.pend{font-size:9.5px;font-weight:800;color:#b06a00;background:#fff3e0;padding:2px 6px;border-radius:9px;margin-left:6px}
+#v2Action{padding:0 10px}
+.btn-go{margin-top:8px;padding:8px 12px;border:0;background:var(--red);color:#fff;border-radius:5px;font-weight:700;font-size:12px;cursor:pointer}
+.btn-go:hover{background:#c00}
+.segmented.v2-scope{width:100%;margin-bottom:11px}
+.segmented.v2-scope button{flex:1;padding:8px 6px;font-size:12px;font-weight:700}
+.terr-solo{margin-bottom:13px}
+.terr-solo button{line-height:1.25;text-align:center}
+.terr-drop{border:1px solid #e2e2e2;border-radius:6px;margin:8px 0}
+.terr-drop>summary{list-style:none;cursor:pointer;padding:9px 11px;font-size:12.5px;font-weight:700;display:flex;align-items:center}
+.terr-drop>summary::-webkit-details-marker{display:none}
+.terr-drop>summary::after{content:'▾';color:#9aa0a8;font-size:10px;margin-left:6px}
+.terr-drop[open]>summary::after{content:'▴'}
+.terr-drop .sel-count{font-weight:600;color:#8a8f96;font-size:11px;margin-left:auto}
+.terr-drop-body{padding:8px 11px 9px;border-top:1px solid #eee}
+.terr-drop-body label{margin:8px 0}
+.terr-drop-body label.opt-off{color:#c2c6cc}
+.terr-drop-body .opt-n{margin-left:auto;font-size:11px;font-weight:700;color:#8a8f96}
+.terr-search{width:100%;padding:6px 9px;border:1px solid #d4d4d4;border-radius:5px;font-size:12.5px;margin-bottom:6px}
+.terr-search:focus{outline:none;border-color:var(--red)}
+.terr-opts{max-height:168px;overflow:auto}
+.wdot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle}
+.prioriza-layout{grid-template-columns:300px minmax(0,1fr) 360px}
+.prioriza-col{padding:0}
+.prioriza-col.left-col{overflow-y:auto}
+.prioriza-col.right-col{display:flex;flex-direction:column;overflow:hidden}
+.prioriza-col.right-col .prioriza-list{flex:1;min-height:0;overflow-y:auto;height:auto}
+.slot-hd{display:flex;align-items:center;gap:9px;padding:11px 15px;font-size:11.5px;font-weight:800;letter-spacing:.05em;background:#fafafa;border-bottom:1px solid #e5e5e5;border-top:1px solid #e5e5e5}
+.slot-hd:first-child{border-top:0}
+.slot-hd b{width:19px;height:19px;border-radius:50%;background:var(--red);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;flex:none}
+.slot-hd .pill{margin-left:auto}
+.slot-pad{padding:13px 15px}
+.slot-hint{font-size:11px;color:#8a8f97;line-height:1.4;margin:0 0 10px}
+.slot-sub{font-size:11px;color:#777;padding:7px 15px 0;margin:0}
+.near-title{margin-top:14px}
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.res{background:#fff;border:1px solid #e3e3e3;border-top:3px solid var(--red);border-radius:6px;padding:8px 10px}
+.res b{font-size:18px;display:block;line-height:1.1}
+.res span{font-size:10.5px;color:#666;display:block;margin-top:3px}
+.res.pend{grid-column:1/-1;border-top-color:#c9ccd1}
+.res.pend b{color:#9aa0a8}
+.funnel{font-size:12px;color:#555;margin-bottom:11px;line-height:1.4}
+.funnel b{color:var(--red);font-size:14px}
+.funnel span{color:#bbb;margin:0 4px}
+@media(max-width:1100px){.prioriza-layout{grid-template-columns:250px minmax(0,1fr) 300px}}
+.prioriza-col.left-col .multi-options{max-height:76px}
+.prioriza-col.left-col .multi{margin-bottom:8px}
+
+/* V3 · delimitación como desplegables encadenados */
+.dd{margin-bottom:8px}
+.dd-k{font-size:12px;font-weight:800;margin-bottom:4px}
+.dd-b{display:flex;align-items:center;justify-content:space-between;border:1px solid #cfcfcf;border-radius:5px;padding:8px 10px;background:#fff;cursor:pointer;font-size:13px}
+.dd-b:hover{border-color:#999}
+.dd-lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#333}
+.dd-car{color:#999;font-size:10px;margin-left:8px;transition:transform .15s;flex:none}
+.dd.open .dd-car{transform:rotate(180deg)}
+.dd.open .dd-b{border-color:var(--red)}
+.dd-menu{display:none;background:#fff;border:1px solid #e2e2e2;border-radius:5px;max-height:200px;overflow:auto;margin-top:4px}
+.dd.open .dd-menu{display:block}
+.dd-menu label{display:flex;align-items:center;gap:8px;padding:7px 10px;font-size:12.5px;font-weight:400;cursor:pointer;border-bottom:1px solid #f2f2f2;margin:0}
+.dd-menu label:last-child{border-bottom:0}
+.dd-menu label:hover{background:#faf5f5}
+.dd-menu .dd-todos{font-weight:700}
+
+/* Leyenda de la rampa de riesgo en la barra de KPIs (marcadores coloreados por afScore) */
+.kpi-legend{min-width:auto;display:flex;align-items:center;gap:9px;border-top-color:#454545}
+.kpi-legend .kpi-legend-title{font-size:11px;font-weight:800;color:#333;margin:0}
+.kpi-legend .kpi-legend-ramp{display:inline-flex;gap:0;margin:0}
+.kpi-legend .kpi-legend-ramp i{width:15px;height:13px;display:block;border:1px solid #fff}
+.kpi-legend .kpi-legend-ends{font-size:10px;color:#777;margin:0}
+
+/* Glifo de forma del dominio en la leyenda del filtro (forma = dominio; el color queda para el riesgo). */
+.dom-glyph{flex:0 0 auto;display:inline-block;vertical-align:middle}
+
+/* Paneles de filtro fijos (siempre abiertos, sin colapsar) de la Vista 2. */
+.sidebar .panel{border-bottom:1px solid #e5e5e5}
+.sidebar .panel-h{font-weight:800;font-size:15px;padding:16px 17px 11px;margin:0}
+/* Barra "Todos / Limpiar" al inicio de cada grupo de filtros. */
+.chk-actions{display:flex;gap:12px;margin:0 0 11px}
+.chk-actions button{border:0;background:transparent;color:var(--red);font-size:12px;font-weight:800;cursor:pointer;padding:0}
+.chk-actions button:hover{text-decoration:underline}
+/* Tipo de unidad agrupado por dominio, con subtítulo por grupo. */
+.type-group{margin:0 0 12px}
+.type-group:last-child{margin-bottom:0}
+
+/* Puntos críticos CENEPRED: badge oscuro con ícono de tipo de peligro; el anillo indica el nivel. */
+.cp-icon{background:none;border:0}
+.cp-badge{width:25px;height:25px;border-radius:50%;background:#2f3a42;border:2.5px solid #8a8a8a;box-shadow:0 1px 4px #0005;display:flex;align-items:center;justify-content:center}
+.cp-badge svg{width:15px;height:15px;display:block}
+.cp-badge-sm{width:20px;height:20px;border-width:2px;box-shadow:none}
+.cp-badge-sm svg{width:12px;height:12px}
+/* Punto crítico que dispara la selección: badge grande, anillo rojo y halo. */
+.cp-badge-hi{width:34px;height:34px;border:3px solid var(--red);background:#111;box-shadow:0 0 0 4px rgba(255,0,0,.22),0 2px 7px #0007}
+.cp-badge-hi svg{width:19px;height:19px}
+/* Ícono del tipo de peligro alineado a la derecha de su casilla de filtro. */
+.haz-ic{margin-left:auto;flex:0 0 auto}
+/* Toggle "Ver puntos críticos", abajo del panel, separado por una línea. */
+.cp-show{border-top:1px solid #e5e5e5;margin-top:14px;padding-top:13px}
+.cp-toggle{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin:0;cursor:pointer}
+.cp-count{background:#2f3a42;color:#fff;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:800}
+.cp-note{margin:8px 0 0}
+
+/* --- Nivel compuesto de exposición (Vista 2): color por severidad --- */
+.lv-4{color:#8f0a0a}.lv-3{color:#d21f1f}.lv-2{color:#e8624a}.lv-1{color:#c98a72}
+.v2-item .meta b.lv-4,.v2-item .meta b.lv-3,.v2-item .meta b.lv-2,.v2-item .meta b.lv-1{font-weight:800}
+/* "De qué lo expone": UNA grilla rótulo | nivel. Los niveles alinean a la derecha (columna auto);
+   la distancia del punto crítico va como nota dentro del rótulo y no descuadra la columna del nivel. */
+.haz-grid{display:grid;grid-template-columns:1fr auto;column-gap:14px;row-gap:6px;align-items:baseline;margin-top:10px;border-top:1px solid #eee;padding-top:10px}
+.haz-grid .hg-l{font-size:12px;color:#555}
+.haz-grid .hg-l i{font-style:normal;color:#9a9a9a;font-size:11px;margin-left:6px}
+.haz-grid .hg-v{font-size:12px;font-weight:700;text-align:right;white-space:nowrap}
+.haz-grid .hg-total.hg-l{font-weight:800;color:#222;font-size:12.5px;border-bottom:1px dotted #e4e4e4;padding-bottom:7px}
+.haz-grid .hg-total.hg-v{font-size:15px;font-weight:800;border-bottom:1px dotted #e4e4e4;padding-bottom:7px}
+.haz-grid .hg-haz.hg-l{font-weight:700;color:#333}
+.haz-grid .hg-haz.hg-v{font-weight:800}
+.haz-grid .hg-canal.hg-l{padding-left:2px;color:#777}
+.haz-grid .hg-canal.hg-v{font-weight:700}
+.haz-mag{margin-top:9px;font-size:11.5px;color:#777;border-top:1px solid #eee;padding-top:7px}
+/* --- Carga del corredor (material + origen → planta, del S&OP): reemplaza el nombre de vía largo --- */
+.v2-item .meta.via-carga-row{color:#2f2f2f;font-weight:600;margin-top:5px}
+.via-carga{margin-top:9px;border-top:1px solid #eee;padding-top:9px}
+.via-carga-h{font-size:11.5px;font-weight:800;color:#222;margin-bottom:6px}
+.via-flujo{display:flex;justify-content:space-between;gap:12px;font-size:12px;margin:4px 0;line-height:1.35}
+.via-flujo b{font-weight:700;color:#222;white-space:nowrap}
+.via-flujo span{color:#555;text-align:right}
+.via-tramo{margin-top:9px;border-top:1px solid #eee;padding-top:7px;font-size:11px;color:#8a8a8a}

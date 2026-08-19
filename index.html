@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Impacto potencial FEN | UNACEM · V2.3</title>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="styles.css?v=2.3.0"/>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><img src="assets/unacem-logo.png" alt="UNACEM"/><div class="brand-divider"></div><div><strong>IMPACTO POTENCIAL FEN</strong><span>Infraestructura, servicios y población expuesta</span></div></div>
+  <div class="scenario"><span>Escenario de exposición</span><div class="segmented" id="scenarioBtns">
+    <button data-m="250">250 m</button><button class="active" data-m="500">500 m</button><button data-m="1000">1 km</button><button data-m="1500">1.5 km</button><button data-m="2000">2 km</button>
+  </div></div>
+</header>
+<div class="warning">Estimación de exposición potencial por proximidad espacial. No representa daño confirmado.<span class="build-badge">V2.3</span></div>
+<!-- Build "solo Unidades expuestas": barra de pestañas eliminada; solo se muestra la vista de detalle. -->
+<main>
+<section id="territorialView" class="view three-col">
+  <aside class="sidebar left-sidebar">
+    <details open><summary>Indicador territorial</summary><div class="panel-body"><label>Indicador<select id="metricSelect">
+      <option value="alumnos_afectados">Alumnos potencialmente expuestos</option><option value="colegios_afectados">Locales educativos potencialmente expuestos</option><option value="salud_afectados">Establecimientos de salud</option><option value="comedores_afectados">Comedores / ollas</option><option value="usuarios_afectados">Usuarios de comedores</option><option value="puentes_afectados">Puentes</option><option value="vias_km_afectadas">Km de vías</option><option value="cultivos_ha_afectados">Ha de cultivos</option><option value="puntos_criticos">Puntos críticos</option><option value="progresol_afectados">Progresol potencialmente expuestos</option>
+    </select></label></div></details>
+    <details open><summary>Filtros de puntos críticos</summary><div class="panel-body" id="criticalFiltersTerritorial"></div></details>
+    <details><summary>Leyenda</summary><div class="panel-body"><div id="legendBody"></div><div class="critical-legend"><span class="dot black"></span> Punto crítico que cumple filtros<br><span class="dot gray"></span> Punto crítico que no cumple filtros</div></div></details>
+  </aside>
+  <div class="map-wrap"><div id="mapTerritorial"></div><button id="resetTerritorial" class="map-reset" title="Ajustar mapa al territorio visible">⌂ Ajustar mapa</button><div class="kpis" id="territorialKpis"></div></div>
+  <aside class="sidebar right-sidebar">
+    <details open><summary>Filtros territoriales</summary><div class="panel-body" id="territoryFiltersTerritorial"></div></details>
+    <details><summary>Lectura del mapa</summary><div class="panel-body help"><p>Los filtros territoriales restringen las zonas visibles. Los filtros de puntos críticos no eliminan zonas: los puntos que no cumplen se muestran en gris y los impactos se recalculan solo con los puntos que sí cumplen.</p></div></details>
+  </aside>
+</section>
+<section id="detailView" class="view active three-col detail-layout">
+  <aside class="sidebar left-sidebar">
+    <section class="panel"><h3 class="panel-h">1 · Territorio</h3><div class="panel-body" id="v2Territory"></div></section>
+    <section class="panel"><h3 class="panel-h">2 · Dominio</h3><div class="panel-body" id="v2Domain"></div></section>
+    <section class="panel"><h3 class="panel-h">3 · Tipo de unidad</h3><div class="panel-body" id="v2Types"></div></section>
+    <section class="panel"><h3 class="panel-h">4 · Peligro</h3><div class="panel-body" id="v2Hazard"></div></section>
+    <details><summary>Capas pendientes</summary><div class="panel-body"><label class="pend-slot"><input type="checkbox" disabled> Zonas de susceptibilidad <span class="pend">pendiente</span></label><label class="pend-slot"><input type="checkbox" disabled> Desbordes INDECI <span class="pend">pendiente</span></label><p class="muted">Se poblarán cuando llegue el dato (ver contrato V4).</p></div></details>
+  </aside>
+  <div class="map-wrap"><div id="mapDetail"></div><button id="resetDetail" class="map-reset" title="Ajustar mapa a las unidades visibles">⌂ Ajustar mapa</button><div class="kpis" id="detailKpis"></div></div>
+  <aside class="sidebar exposure-list-panel">
+    <div class="list-head"><div><h2>Ranking de afectación</h2><p id="v2Subtitle">Unidades expuestas, ordenadas por nivel de afectación.</p></div><span id="v2Count" class="pill">0</span></div>
+    <div id="v2Action"></div>
+    <div id="v2List" class="affected-list"></div>
+  </aside>
+</section>
+<section id="priorizaView" class="view prioriza-layout">
+  <aside class="sidebar prioriza-col left-col">
+    <div class="scope-toggle"><span>Universo de análisis</span><div class="segmented" id="prioScopeBtns"><button class="active" data-scope="influencia">Zona de influencia</button><button data-scope="comercial">Territorio comercial</button></div><p class="slot-hint" id="scopeHint">55 proyectos de prevención en los 13 distritos de influencia, puntuados por proximidad a los activos mapeados.</p></div>
+    <div class="slot-hd"><b>1</b>DELIMITACIÓN TERRITORIAL</div>
+    <div class="slot-pad" id="territoryFiltersPrioriza"></div>
+    <div class="slot-hd"><b>2</b>CARACTERÍSTICAS DEL PROYECTO</div>
+    <div class="slot-pad">
+      <div id="criticalFiltersPrioriza"></div>
+      <div id="prioInfluenciaOnly">
+        <div class="filter-label near-title">El proyecto protege activos de</div>
+        <p class="slot-hint">Deja solo los proyectos que tienen ese activo dentro del escenario.</p>
+        <div id="nearAssetChecks" class="checks"></div>
+      </div>
+      <div id="prioComercialFiltros" class="hidden"></div>
+    </div>
+  </aside>
+  <div class="map-wrap"><div id="mapPrioriza"></div><button id="resetPrioriza" class="map-reset" title="Ajustar mapa al territorio visible">⌂ Ajustar mapa</button></div>
+  <aside class="sidebar prioriza-col right-col">
+    <div class="slot-hd"><b>3</b>PESO DE CADA CRITERIO</div>
+    <div class="slot-pad"><p class="slot-hint">Los pesos se reparten a 100 %. Sube el que más te importe y el ranking se recalcula.</p><div id="weightControls"></div></div>
+    <div class="slot-hd"><b>4</b>RESULTADO</div>
+    <div class="slot-pad" id="priorizaResult"></div>
+    <div class="slot-hd"><b>5</b>CARTERA PRIORIZADA<span id="priorizaCount" class="pill">0</span></div>
+    <p class="slot-sub" id="priorizaSubtitle"></p>
+    <div id="priorizaList" class="affected-list prioriza-list"></div>
+  </aside>
+</section>
+</main>
+<footer class="srcbar" title="Fuente de datos: Inventario Nacional de Puntos Críticos de la Autoridad Nacional del Agua (ANA); fichas técnicas referenciales (FTR-CB-PREV) de reconocimiento de campo, campañas 2015-2026, publicadas en la biblioteca del SIGRID (CENEPRED). Zonas de susceptibilidad: CENEPRED / SIGRID. Recorte al territorio comercial UNACEM."><b>Fuente de datos:</b> Inventario Nacional de Puntos Críticos de la Autoridad Nacional del Agua (ANA) · fichas técnicas referenciales (FTR-CB-PREV), campañas 2015-2026, biblioteca del SIGRID (CENEPRED) · Susceptibilidad: CENEPRED / SIGRID · Recorte al territorio comercial UNACEM.</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
+<script src="app.js?v=2.3.0"></script>
+</body></html>
