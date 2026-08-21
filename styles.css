@@ -172,8 +172,13 @@
 .via-flujo b{font-weight:700;color:#222;white-space:nowrap}
 .via-flujo span{color:#555;text-align:right}
 .via-tramo{margin-top:9px;border-top:1px solid #eee;padding-top:7px;font-size:11px;color:#8a8a8a}
-.list-head-actions{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex:none}
-.export-btn{display:inline-flex;align-items:center;gap:5px;border:0;background:var(--red);color:#fff;border-radius:5px;padding:6px 10px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap}
-.export-btn:hover{background:#d40000}
-.export-btn:active{background:#b60000}
-.export-btn svg{width:13px;height:13px}
+/* Panel del ranking con pie fijo: cabecera y botón de descarga no scrollean; la lista sí. */
+.exposure-list-panel{display:flex;flex-direction:column;overflow:hidden}
+.exposure-list-panel .list-head{flex:none}
+.exposure-list-panel #v2Action{flex:none}
+.exposure-list-panel .affected-list{flex:1 1 auto;height:auto;min-height:0}
+.list-foot{flex:none;border-top:1px solid #ddd;padding:12px 14px;background:#fff}
+.download-list-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;background:#111;color:#fff;font-weight:800;font-size:14px;letter-spacing:.3px;padding:14px 12px;border-radius:4px;cursor:pointer}
+.download-list-btn:hover:not(:disabled){background:#000}
+.download-list-btn:disabled{background:#c9c9c9;cursor:not-allowed}
+.download-list-btn svg{width:16px;height:16px;flex:none}
