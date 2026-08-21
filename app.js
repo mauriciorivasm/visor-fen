@@ -1,4 +1,4 @@
-const BUILD='2.3.0';
+const BUILD='2.3.3';
 const DATA='./data/';
 const state={scenario:500,metric:'alumnos_afectados',mode:'filtered',singleCritical:null,
   territory:{departamento:new Set(),provincia:new Set(),distrito:new Set(),zona:new Set(),influencia:new Set()},
@@ -18,8 +18,9 @@ const typeLabels={colegios:'Local educativo',salud:'Establecimiento de salud',co
 let subzones,criticals,relations,roadRelations,cropRelations,roadSegments,roads,crops; const assets={};
 let puntosTerr=null;   // capa ampliada: puntos criticos CENEPRED en todo el territorio comercial
 // Vista 2 (Unidades expuestas): capas operacional/comercial nacionales + indices
-let concesiones=null,corredores=null,progresolNac=null,corredoresPC=null,deptos=null,unidadesOp=null,terrComercial=null,viasDS=null,viasSociales=null,viasLocales=null;
+let concesiones=null,corredores=null,progresolNac=null,corredoresPC=null,deptos=null,unidadesOp=null,terrComercial=null,viasDS=null,viasSociales=null,viasLocales=null,viasAcceso=null;
 let canalASocial=null; // canal A (zona de susceptibilidad) por elemento social: {capa:{entity_id:{i,m}}} — ver web/data/build_canalA_social.py
+let colegiosPadron={}; // datos clave del padron de escuelas (data-territorial) keyed por cod_local — ver web/data/build_padron_colegios.py; alimenta la descarga Excel de colegios expuestos
 let eeUnidades=null,eeCatalogo=null; // Elementos expuestos SIGRID (bomberos/comisarías, penitenciarías, hidrocarburos, agencias, etc.): ampliación del catálogo social (contrato V4 §6). Cada unidad trae su canal A (za_i/za_m) y sus puntos críticos (pcs).
 // Zonas de propensidad (vector tiles): capa SOLO del prototipo. La app real NO define SUSC_TILES_URL
 // ni carga protomaps-leaflet → el toggle no aparece y syncSuscLayer() queda inerte aquí. El proto
@@ -100,7 +101,7 @@ function renderSelectedPoint(){const box=document.getElementById('selectedPoint'
 function fitMapToZones(map){if(map===mp&&state.prioScope==='comercial'){if(tcBounds&&tcBounds.isValid())map.fitBounds(tcBounds,{padding:[20,20],maxZoom:12});return}if(map===md){if(v2Bounds&&v2Bounds.isValid())map.fitBounds(v2Bounds,{padding:[20,20],maxZoom:13});return}const feats=(lastCalc?.zones||visibleZoneFeatures());if(!feats.length)return;const temp=L.geoJSON({type:'FeatureCollection',features:feats});const b=temp.getBounds();if(b.isValid())map.fitBounds(b,{padding:[20,20],maxZoom:13})}
 function resetActiveMap(view){setTimeout(()=>{const map=view==='territorial'?mt:(view==='prioriza'?mp:md);if(!map)return;map.invalidateSize();fitMapToZones(map)},100)}
 function updateAll(fit=false){/* Build "solo Unidades expuestas": no corre motor territorial ni cartera; solo renderExpuestas(). */renderExpuestas();if(fit){fitMapToZones(md)}}
-function setupControls(){document.getElementById('metricSelect').value=state.metric;document.getElementById('metricSelect').onchange=e=>{state.metric=e.target.value;updateAll(false)};document.getElementById('scenarioBtns').onclick=e=>{const m=e.target.dataset.m;if(!m)return;state.scenario=Number(m);document.querySelectorAll('#scenarioBtns button').forEach(b=>b.classList.toggle('active',Number(b.dataset.m)===state.scenario));updateAll(false)};const amEl=document.getElementById('analysisMode');if(amEl)amEl.onchange=e=>{state.mode=e.target.value;state.singleCritical=null;updateAll(false)};const lcEl=document.getElementById('layerChecks');if(lcEl){lcEl.innerHTML=Object.keys(state.layers).map(k=>`<label><input type="checkbox" data-layer="${k}" ${state.layers[k]?'checked':''}>${typeLabels[k]}</label>`).join('');document.querySelectorAll('#layerChecks input').forEach(x=>x.onchange=()=>{state.layers[x.dataset.layer]=x.checked;updateAll(false)})}document.getElementById('resetTerritorial').onclick=()=>resetActiveMap('territorial');document.getElementById('resetDetail').onclick=()=>resetActiveMap('detail');const v2sp=document.getElementById('v2SoloProyecto');if(v2sp)v2sp.onchange=()=>{v2.soloProyecto=v2sp.checked;renderExpuestas()};const viewIds={territorial:'territorialView',detail:'detailView',prioriza:'priorizaView'};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(viewIds[b.dataset.view]).classList.add('active');location.hash=b.dataset.view;if(b.dataset.view==='prioriza'){renderPrioriza();resetActiveMap('prioriza')}else resetActiveMap(b.dataset.view)});document.getElementById('resetPrioriza').onclick=()=>resetActiveMap('prioriza');
+function setupControls(){document.getElementById('metricSelect').value=state.metric;document.getElementById('metricSelect').onchange=e=>{state.metric=e.target.value;updateAll(false)};document.getElementById('scenarioBtns').onclick=e=>{const m=e.target.dataset.m;if(!m)return;state.scenario=Number(m);document.querySelectorAll('#scenarioBtns button').forEach(b=>b.classList.toggle('active',Number(b.dataset.m)===state.scenario));updateAll(false)};const amEl=document.getElementById('analysisMode');if(amEl)amEl.onchange=e=>{state.mode=e.target.value;state.singleCritical=null;updateAll(false)};const lcEl=document.getElementById('layerChecks');if(lcEl){lcEl.innerHTML=Object.keys(state.layers).map(k=>`<label><input type="checkbox" data-layer="${k}" ${state.layers[k]?'checked':''}>${typeLabels[k]}</label>`).join('');document.querySelectorAll('#layerChecks input').forEach(x=>x.onchange=()=>{state.layers[x.dataset.layer]=x.checked;updateAll(false)})}document.getElementById('resetTerritorial').onclick=()=>resetActiveMap('territorial');document.getElementById('resetDetail').onclick=()=>resetActiveMap('detail');const v2sp=document.getElementById('v2SoloProyecto');if(v2sp)v2sp.onchange=()=>{v2.soloProyecto=v2sp.checked;renderExpuestas()};const viewIds={territorial:'territorialView',detail:'detailView',prioriza:'priorizaView'};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(viewIds[b.dataset.view]).classList.add('active');location.hash=b.dataset.view;if(b.dataset.view==='prioriza'){renderPrioriza();resetActiveMap('prioriza')}else resetActiveMap(b.dataset.view)});document.getElementById('resetPrioriza').onclick=()=>resetActiveMap('prioriza');const v2exp=document.getElementById('v2Export');if(v2exp)v2exp.onclick=exportColegiosXlsx;
 const scopeBtns=document.getElementById('prioScopeBtns');if(scopeBtns)scopeBtns.onclick=e=>{const s=e.target.dataset.scope;if(!s||s===state.prioScope)return;state.prioScope=s;priorizaSelected=null;scopeBtns.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.scope===s));const inf=s==='influencia';document.getElementById('prioInfluenciaOnly').classList.toggle('hidden',!inf);document.getElementById('prioComercialFiltros').classList.toggle('hidden',inf);document.getElementById('scopeHint').textContent=inf?'55 proyectos de prevención en los 13 distritos de influencia, puntuados por proximidad a los activos mapeados.':'5,521 puntos críticos del inventario de la ANA en el mercado UNACEM, puntuados por la exposición declarada en la ficha + FONDES + emergencia.';if(inf){renderFilters()}renderPrioriza();resetActiveMap('prioriza')}}
 
 /* ===== V3 prototipo · Cartera priorizada de proyectos de intervención ===== */
@@ -246,15 +247,15 @@ function pcFamilies(peligro){const s=norm(peligro),o=[];
   if(s.includes('detrito')||s.includes('huaico')||s.includes('huayco')||s.includes('flujo'))o.push('mov_masa');
   return o.length?o:['inundacion']}
 const v2={dom:new Set(['operacional','comercial','social']),tipo:new Set(),
-  dep:new Set(),dist:new Set(),zona:new Set(),tipoInf:new Set(['Directa']),q:{dep:'',dist:'',zona:''},
+  dep:new Set(),dist:new Set(),zona:new Set(),tipoInf:new Set(['Directa']),q:{dep:'',dist:'',zona:''},qVia:'',qRio:'',
   haz:new Set(HAZ_KEYS),hazNivel:new Set(HAZ_NIVELES),canal:new Set(['zona','punto','ambos']),soloProyecto:false,showCP:false,showSus:false,selected:null};
 const v2TipoTotal=()=>['operacional','comercial','social'].filter(d=>v2.dom.has(d)).reduce((n,d)=>n+V2_TYPES[d].length,0);
 let INFLU=null; // jerarquia de la zona de influencia (13 distritos / 26 subzonas), desde subzonas.geojson
 const depKey=s=>(s??'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
 const titleCase=s=>(s??'').toString().toLowerCase().replace(/(^|[\s\-])\p{L}/gu,m=>m.toUpperCase());
 const PERU_DEP=['Amazonas','Áncash','Apurímac','Arequipa','Ayacucho','Cajamarca','Callao','Cusco','Huancavelica','Huánuco','Ica','Junín','La Libertad','Lambayeque','Lima','Loreto','Madre de Dios','Moquegua','Pasco','Piura','Puno','San Martín','Tacna','Tumbes','Ucayali'];
-const V2_TYPES={social:['colegios','salud','comedores','puentes','vias_soc'],comercial:['progresol_nac','vias_local'],operacional:['planta','cantera','faja','terminal','linea_transmision','concesiones','vias']};
-const V2_LABEL={colegios:'Colegios',salud:'Salud',comedores:'Comedores / ollas',puentes:'Puentes',progresol_nac:'Progresol (nacional)',concesiones:'Concesiones',planta:'Planta',cantera:'Cantera',faja:'Faja transportadora',terminal:'Terminal portuario',linea_transmision:'Línea de transmisión',vias:'Vías de despacho / suministro',vias_soc:'Vías sociales',vias_local:'Vía de acceso a progresol'};
+const V2_TYPES={social:['colegios','salud','comedores','puentes','vias_soc'],comercial:['progresol_nac','vias_local'],operacional:['planta','cantera','faja','terminal','linea_transmision','concesiones','vias','vias_acceso']};
+const V2_LABEL={colegios:'Colegios',salud:'Salud',comedores:'Comedores / ollas',puentes:'Puentes',progresol_nac:'Progresol (nacional)',concesiones:'Concesiones',planta:'Planta',cantera:'Cantera',faja:'Faja transportadora',terminal:'Terminal portuario',linea_transmision:'Línea de transmisión',vias:'Vías de despacho / suministro',vias_soc:'Vías sociales',vias_local:'Vía de acceso a progresol',vias_acceso:'Vías de acceso a planta'};
 const V2_DOMLABEL={social:'Social',comercial:'Comercial',operacional:'Operacional'};
 // Dominio = FORMA (sin color). El COLOR de la unidad lo lleva el RIESGO.
 const V2_DOMCOLOR={social:'#7a3f9c',comercial:'#c02a6e',operacional:'#1f1f1f'}; // se conserva para el nº de ranking de la lista y el tag del panel de accion
@@ -394,7 +395,7 @@ function afScore(dist,nivel){const prox=Math.max(0,1-dist/Math.max(state.scenari
 function afStars(s){return Math.max(1,Math.min(5,Math.round(s*5)))}
 function starHTML(n){return `<span class="rating">${[1,2,3,4,5].map(i=>`<span class="star ${i<=n?'on':''}">★</span>`).join('')}</span>`}
 function afLabel(n){return ['Muy baja','Baja','Media','Alta','Muy alta'][Math.max(1,Math.min(5,n))-1]||'—'}
-function v2Name(t,p){switch(t){case 'colegios':return p.CEN_EDU||'Local educativo';case 'salud':return p['Nombre del establecimiento']||'Establecimiento de salud';case 'comedores':return p.nombre||'Comedor / olla';case 'puentes':return p.v_nom_infr||'Puente';case 'progresol_nac':return p.nombre||'Progresol';case 'concesiones':return p.concesion||'Concesión';case 'planta':case 'cantera':case 'faja':case 'terminal':case 'linea_transmision':return p.nombre||'Unidad operacional';case 'vias':return p.corredor?(p.corredor+' ('+p.cod_ruta+')'):(p.cod_ruta||p.nombre_oficial||'Vía');case 'vias_soc':return p.nombre||p.cod||'Vía';case 'vias_local':return p.progresol_servido||p.nombre||'Progresol'}return '—'}
+function v2Name(t,p){switch(t){case 'colegios':return p.CEN_EDU||'Local educativo';case 'salud':return p['Nombre del establecimiento']||'Establecimiento de salud';case 'comedores':return p.nombre||'Comedor / olla';case 'puentes':return p.v_nom_infr||'Puente';case 'progresol_nac':return p.nombre||'Progresol';case 'concesiones':return p.concesion||'Concesión';case 'planta':case 'cantera':case 'faja':case 'terminal':case 'linea_transmision':return p.nombre||'Unidad operacional';case 'vias':return p.corredor?(p.corredor+' ('+p.cod_ruta+')'):(p.cod_ruta||p.nombre_oficial||'Vía');case 'vias_soc':return p.nombre||p.cod||'Vía';case 'vias_local':return p.progresol_servido||p.nombre||'Progresol';case 'vias_acceso':return p.nombre||'Vía de acceso'}return '—'}
 
 function buildV2Index(){
   relByEntity={};
@@ -477,14 +478,14 @@ function v2Units(){
       if(p.pc_mmasa_lat!=null)pcs.push({lat:p.pc_mmasa_lat,lng:p.pc_mmasa_lng,dist:d,peligro:p.pc_mmasa_peligro||'Flujo de detritos',nivel:p.nivel_mmasa||''});
       if(!pcs.length&&p.pc_lat!=null)pcs.push({lat:p.pc_lat,lng:p.pc_lng,dist:d,peligro:peliTop,nivel:nivTop});
     }
-    out.push({dominio:'operacional',tipo:'vias',id,_key:'vias:'+id,nombre:v2Name('vias',p),lat:m?m[0]:null,lng:m?m[1]:null,dist:inScen?d:null,nivel:inScen?nivTop:'',peligro:inScen?pl:'',dep:p.departamento||'',distrito:'',mag:Number(p.long_km)||null,magUnit:'km',proj:null,geom:f.geometry,pcritKm:p.puntos_criticos_1km,corredor:p.corredor||'',codRuta:p.cod_ruta||'',materiales:p.carga_materiales||[],origenes:p.carga_origenes||[],destinos:p.carga_destinos||[],flujos:p.carga_flujos||[],tramo:p.nombre_oficial||'',pcs})}
+    out.push({dominio:'operacional',tipo:'vias',id,_key:'vias:'+id,nombre:v2Name('vias',p),lat:m?m[0]:null,lng:m?m[1]:null,dist:inScen?d:null,nivel:inScen?nivTop:'',peligro:inScen?pl:'',dep:p.departamento||'',distrito:'',mag:Number(p.long_km)||null,magUnit:'km',proj:null,geom:f.geometry,pcritKm:p.puntos_criticos_1km,corredor:p.corredor||'',codRuta:p.cod_ruta||'',materiales:p.carga_materiales||[],origenes:p.carga_origenes||[],destinos:p.carga_destinos||[],flujos:p.carga_flujos||[],tramo:p.nombre_oficial||'',rio:p.pc_rio||'',pcs})}
   // Vías sociales (zona de influencia): vías afectables que no son de despacho/suministro. Como unidad
   // social, participan de los filtros de territorio (distrito/zona/tipo de influencia) y del punto crítico.
   if(v2.dom.has('social'))for(const f of (viasSociales?.features||[])){const p=f.properties,d=Number(p.dist_min_m),inScen=d<=state.scenario,id=String(p.cod||p.nombre);
     const zt=canalASocial&&canalASocial['vias_soc']&&canalASocial['vias_soc'][id],hasA=!!(zt&&(zt.i||zt.m));
     if(!inScen&&!hasA)continue;
     const m=lineNearest(f.geometry,p.pc_lat,p.pc_lng),pcs=(inScen&&p.pc_lat!=null&&p.pc_lng!=null)?[{lat:p.pc_lat,lng:p.pc_lng,dist:d,peligro:p.peligro||'',nivel:p.nivel||''}]:[];
-    out.push({dominio:'social',tipo:'vias_soc',id,_key:'vias_soc:'+id,nombre:v2Name('vias_soc',p),lat:m?m[0]:null,lng:m?m[1]:null,dist:inScen?d:null,nivel:inScen?(p.nivel||''):'',peligro:inScen?(p.peligro||''):'',dep:p.DEPARTAMEN||'',prov:p.PROVINCIA||'',distrito:p.DISTRITO||'',zona:p.Zonas||'',tipoInf:p.tipo_influencia||'',sub:String(p.sububigeo||''),mag:Number(p.long_km)||null,magUnit:'km',proj:null,geom:f.geometry,pcs})}
+    out.push({dominio:'social',tipo:'vias_soc',id,_key:'vias_soc:'+id,nombre:v2Name('vias_soc',p),lat:m?m[0]:null,lng:m?m[1]:null,dist:inScen?d:null,nivel:inScen?(p.nivel||''):'',peligro:inScen?(p.peligro||''):'',dep:p.DEPARTAMEN||'',prov:p.PROVINCIA||'',distrito:p.DISTRITO||'',zona:p.Zonas||'',tipoInf:p.tipo_influencia||'',sub:String(p.sububigeo||''),mag:Number(p.long_km)||null,magUnit:'km',proj:null,geom:f.geometry,rio:p.pc_rio||'',pcs})}
   // Elementos expuestos SIGRID (contrato V4 §6): bomberos/comisarías, penitenciarías, hidrocarburos, GLP,
   // agencias bancarias, ductos, red ferroviaria, central hidráulica, línea de transmisión, sanitaria.
   // Unidades sociales puntuales: canal A propio (za_i/za_m = susceptibilidad Media+ ya filtrada en el dato)
@@ -504,7 +505,21 @@ function v2Units(){
     const zt=canalASocial&&canalASocial['vias_local']&&canalASocial['vias_local'][id],hasA=!!(zt&&(zt.i||zt.m));
     if(!inScen&&!hasA)continue;
     const m=lineNearest(f.geometry,p.pc_lat,p.pc_lng),pcs=(inScen&&p.pc_lat!=null&&p.pc_lng!=null)?[{lat:p.pc_lat,lng:p.pc_lng,dist:d,peligro:p.peligro||'',nivel:p.nivel||''}]:[];
-    out.push({dominio:'comercial',tipo:'vias_local',id,_key:'vias_local:'+id,nombre:v2Name('vias_local',p),lat:m?m[0]:null,lng:m?m[1]:null,dist:inScen?d:null,nivel:inScen?(p.nivel||''):'',peligro:inScen?(p.peligro||''):'',dep:p.departamento||'',prov:p.provincia||'',distrito:p.distrito||'',mag:Number(p.long_km)||null,magUnit:'km',proj:null,geom:f.geometry,pcritKm:p.puntos_criticos_1km,progNom:p.progresol_servido||'',progDir:p.progresol_direccion||'',progDist:p.progresol_dist_m,viaRuta:p.ruta||'',viaNom:p.nombre||'',pcs})}
+    out.push({dominio:'comercial',tipo:'vias_local',id,_key:'vias_local:'+id,nombre:v2Name('vias_local',p),lat:m?m[0]:null,lng:m?m[1]:null,dist:inScen?d:null,nivel:inScen?(p.nivel||''):'',peligro:inScen?(p.peligro||''):'',dep:p.departamento||'',prov:p.provincia||'',distrito:p.distrito||'',mag:Number(p.long_km)||null,magUnit:'km',proj:null,geom:f.geometry,pcritKm:p.puntos_criticos_1km,progNom:p.progresol_servido||'',progDir:p.progresol_direccion||'',progDist:p.progresol_dist_m,viaRuta:p.ruta||'',viaNom:p.nombre||'',rio:p.pc_rio||'',pcs})}
+  // Vías de acceso a planta (calles urbanas de Lima Sur, OpenStreetMap): la entrada real a Atocongo
+  // (Av. Lima / Av. Atocongo / Av. Pachacútec) no está en la red del MTC. Exposición por zona de
+  // susceptibilidad (canal A: susc_inund/mmasa) + punto crítico ANA de cauce como contexto. Unidad
+  // OPERACIONAL (continuidad de acceso a la planta).
+  if(v2.dom.has('operacional'))for(const f of (viasAcceso?.features||[])){const p=f.properties,id=String(p.osm_id||p.id);
+    const za={i:p.susc_inund_nivel||'',m:p.susc_mmasa_nivel||''},hasA=!!(za.i||za.m);
+    const d=Number(p.ana_pc_dist_m),inScen=isFinite(d)&&d<=state.scenario;
+    if(!hasA&&!inScen)continue; // no expuesta: ni zona de susceptibilidad ni punto crítico en el escenario
+    const m=lineNearest(f.geometry,null,null),ti=subzonaTipoInf(m?m[0]:null,m?m[1]:null)||'Directa';
+    const pcs=inScen?[{lat:m?m[0]:null,lng:m?m[1]:null,dist:d,peligro:p.ana_pc_peligro||'',nivel:p.ana_pc_nivel||''}]:[];
+    out.push({dominio:'operacional',tipo:'vias_acceso',id,_key:'vias_acceso:'+id,nombre:v2Name('vias_acceso',p),
+      lat:m?m[0]:null,lng:m?m[1]:null,dist:inScen?d:null,nivel:'',peligro:'',dep:'Lima',distrito:p.ana_pc_distrito||'',
+      tipoInf:ti,mag:Number(p.long_km)||null,magUnit:'km',proj:null,geom:f.geometry,rio:p.pc_rio||p.ana_pc_rio_q||'',
+      accesoPrincipal:!!p.via_acceso_principal,clase:p.clase||'',_za:za,pcs})}
   // Ubica en su subzona a las unidades sin tipo de influencia del pipeline (operacionales/comerciales),
   // para que el recorte v2.tipoInf opere por posición y no las descarte por no cargar el tag.
   for(const u of out)if(!u.tipoInf&&u.lat!=null&&u.lng!=null)u.tipoInf=subzonaTipoInf(u.lat,u.lng);
@@ -529,6 +544,11 @@ function v2Hazards(u){
 function v2Level(src){let s=0;for(const k of v2.haz)s=Math.max(s,src[k].sev);return s}
 
 function v2Filtered(){let u=v2Units();
+  // Búsqueda por nombre de vía y por nombre de río (punto crítico ANA de la vía). depKey = sin tildes,
+  // minúsculas: "lurin" encuentra "Río Lurín". El filtro por río excluye lo que no tiene río (no-vías).
+  const qv=depKey(v2.qVia),qr=depKey(v2.qRio);
+  if(qv)u=u.filter(x=>depKey(x.nombre).includes(qv)||depKey(x.tramo).includes(qv)||depKey(x.viaNom).includes(qv));
+  if(qr)u=u.filter(x=>depKey(x.rio).includes(qr));
   // Grupos con default "todo marcado": si están completos NO se filtra (no descarta unidades con campo
   // vacío, p. ej. comercial/concesiones sin nivel); parcial filtra; vacío (Limpiar) no muestra nada.
   if(v2.tipo.size<v2TipoTotal())u=u.filter(x=>v2.tipo.has(x.tipo));
@@ -545,7 +565,9 @@ function v2Filtered(){let u=v2Units();
   if(v2.zona.size)u=u.filter(x=>v2.zona.has(x.zona));
   // Recorte territorial (todas las unidades por ubicación): pasa la que cae en una subzona del tipo activo.
   // A diferencia de dep/dist/zona, aquí SÍ se descarta la de tipoInf vacío: significa fuera del área de influencia.
-  if(v2.tipoInf.size<TIPO_INFLU.length)u=u.filter(x=>x.tipoInf&&v2.tipoInf.has(x.tipoInf));
+  // EXCEPCIÓN: si hay búsqueda por nombre de vía/río, no se aplica el recorte de influencia (buscar una vía
+  // por nombre debe encontrarla en todo el país, p. ej. la Panamericana Sur, aunque caiga fuera de influencia).
+  if(!qv&&!qr&&v2.tipoInf.size<TIPO_INFLU.length)u=u.filter(x=>x.tipoInf&&v2.tipoInf.has(x.tipoInf));
   if(v2.soloProyecto)u=u.filter(x=>x.proj&&x.proj.dist<=state.scenario);
   return u}
 // El nivel compuesto manda el color y el orden; la proximidad al punto crítico desempata dentro del nivel.
@@ -655,6 +677,33 @@ function v2Row(u,i){const dc=V2_DOMCOLOR[u.dominio],magTxt=(u.mag!=null&&u.mag>0
 function v2ActionPanel(){const box=document.getElementById('v2Action');if(box)box.innerHTML=''}
 function v2GoToView3(cid){state.prioScope='comercial';const btns=document.getElementById('prioScopeBtns');if(btns)btns.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.scope==='comercial'));const io=document.getElementById('prioInfluenciaOnly'),cf=document.getElementById('prioComercialFiltros');if(io)io.classList.add('hidden');if(cf)cf.classList.remove('hidden');const sh=document.getElementById('scopeHint');if(sh)sh.textContent='5,521 puntos críticos del inventario de la ANA en el mercado UNACEM, puntuados por la exposición declarada en la ficha + FONDES + emergencia.';tcSelected=String(cid);const tab=document.querySelector('.tab[data-view="prioriza"]');if(tab)tab.click();const self=(puntosTerr&&puntosTerr.features||[]).find(x=>String(x.properties.critical_id)===String(cid));if(self){const c=self.geometry.coordinates;setTimeout(()=>{if(mp)mp.setView([c[1],c[0]],13)},200)}}
 
+// Búsqueda por nombre de vía / río (Vista 2): cablea los dos inputs y llena sus datalist con los
+// nombres presentes en las 4 capas de vías cargadas. Se invoca una vez, tras cargar los datos.
+// Encuadra el mapa a las vías/unidades que coinciden con la búsqueda (o vuelve al dominio si se limpia).
+function v2FitSearch(){
+  if(!md)return;
+  if(v2.qVia||v2.qRio){
+    const sf=[];
+    for(const u of (v2Last||[])){
+      if(u.geom)sf.push({type:'Feature',geometry:u.geom});
+      else if(u.lat!=null&&u.lng!=null)sf.push({type:'Feature',geometry:{type:'Point',coordinates:[u.lng,u.lat]}});
+    }
+    if(sf.length){try{const b=L.geoJSON({type:'FeatureCollection',features:sf}).getBounds();
+      if(b.isValid()){md.fitBounds(b,{padding:[40,40],maxZoom:15});return}}catch(e){}}
+  }
+  if(v2Bounds&&v2Bounds.isValid())md.fitBounds(v2Bounds,{padding:[25,25],maxZoom:13}); // sin búsqueda o sin coincidencias
+}
+function wireV2Search(){
+  const qv=document.getElementById('v2QVia'),qr=document.getElementById('v2QRio');
+  if(qv)qv.oninput=()=>{v2.qVia=qv.value;v2.selected=null;renderExpuestas();v2FitSearch()};
+  if(qr)qr.oninput=()=>{v2.qRio=qr.value;v2.selected=null;renderExpuestas();v2FitSearch()};
+  const capas=[viasDS,viasSociales,viasLocales,viasAcceso];
+  const fill=(id,pick)=>{const dl=document.getElementById(id);if(!dl)return;const s=new Set();
+    for(const fc of capas)for(const f of (fc?.features||[])){const v=(pick(f.properties)||'').trim();if(v&&v!=='(sin nombre)')s.add(v)}
+    dl.innerHTML=[...s].sort((a,b)=>a.localeCompare(b,'es')).map(v=>`<option value="${escapeAttr(v)}">`).join('')};
+  fill('v2ViaList',p=>p.nombre||p.nombre_oficial||p.corredor);
+  fill('v2RioList',p=>p.pc_rio);
+}
 function renderExpuestas(){if(!document.getElementById('detailView')||!md)return;
   renderV2Domain();renderV2Types();renderV2Hazard();renderV2Territory();
   const units=v2Rank(v2Filtered());v2Last=units;
@@ -698,7 +747,7 @@ function renderExpuestas(){if(!document.getElementById('detailView')||!md)return
     ol.addTo(md);mdLayers.push(ol)}
   // Vías (despacho/suministro y sociales): cada vía-unidad se dibuja como traza coloreada por su riesgo.
   // Clic en la línea (o en el ranking) la selecciona; seleccionada = trazo negro más grueso.
-  const viasU=units.filter(u=>(u.tipo==='vias'||u.tipo==='vias_soc'||u.tipo==='vias_local')&&u.geom);
+  const viasU=units.filter(u=>(u.tipo==='vias'||u.tipo==='vias_soc'||u.tipo==='vias_local'||u.tipo==='vias_acceso')&&u.geom);
   if(viasU.length){const vl=L.geoJSON({type:'FeatureCollection',features:viasU.map(u=>({type:'Feature',geometry:u.geom,properties:{k:u._key}}))},{style:f=>{const u=units.find(x=>x._key===f.properties.k),sel=u._key===v2.selected,dim=v2.selected&&!sel;return sel?{color:'#111',weight:5,opacity:1}:{color:v2RiskColor(u.stars),weight:dim?2:3.4,opacity:dim?.25:.92}},onEachFeature:(f,l)=>{l.on('click',()=>{const k=f.properties.k;v2.selected=v2.selected===k?null:k;renderExpuestas()})}});vl.addTo(md);mdLayers.push(vl)}
   // Marcadores de punto: todas las unidades puntuales (las vías van como traza, no como punto).
   const pts=units.filter(u=>u.tipo!=='vias'&&u.tipo!=='vias_soc'&&u.lat!=null&&u.lng!=null&&isFinite(u.lat)&&isFinite(u.lng));
@@ -745,11 +794,93 @@ function renderExpuestas(){if(!document.getElementById('detailView')||!md)return
   v2ActionPanel();}
 //#endregion MOD2-VIEW
 
+/* ===== Descarga Excel de colegios expuestos ===== */
+// Escritor .xlsx minimo y autocontenido (sin dependencias ni CDN): ZIP en modo STORE
+// (sin compresion) + CRC32, con celdas de texto inline y numericas. Suficiente para una
+// hoja tabular; Excel lo abre sin advertencias y respeta acentos y codigos como texto.
+const _CRC_TABLE=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function _crc32(bytes){let c=0xFFFFFFFF;for(let i=0;i<bytes.length;i++)c=_CRC_TABLE[(c^bytes[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function _u8(s){return new TextEncoder().encode(s)}
+// Ensambla un ZIP (STORE) a partir de [{name,bytes}] y devuelve un Blob .xlsx.
+function _zip(files){
+  const parts=[],cd=[];let offset=0;
+  const u16=n=>[n&0xFF,(n>>8)&0xFF],u32=n=>[n&0xFF,(n>>8)&0xFF,(n>>16)&0xFF,(n>>24)&0xFF];
+  for(const f of files){
+    const nameB=_u8(f.name),data=f.bytes,crc=_crc32(data);
+    const local=[].concat([0x50,0x4b,0x03,0x04],u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameB.length),u16(0));
+    parts.push(new Uint8Array(local),nameB,data);
+    const cdh=[].concat([0x50,0x4b,0x01,0x02],u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameB.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset));
+    cd.push(new Uint8Array(cdh),nameB);
+    offset+=local.length+nameB.length+data.length;
+  }
+  let cdSize=0;cd.forEach(b=>cdSize+=b.length);
+  const end=[].concat([0x50,0x4b,0x05,0x06],u16(0),u16(0),u16(files.length),u16(files.length),u32(cdSize),u32(offset),u16(0));
+  return new Blob([...parts,...cd,new Uint8Array(end)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+function _xmlEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+// rows = arreglo de filas; cada celda: {v:number} = numerica, cualquier otra cosa = texto.
+function _sheetXml(rows){
+  const colRef=i=>{let s='',n=i+1;while(n){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)}return s};
+  let body='';
+  rows.forEach((row,r)=>{let cells='';
+    row.forEach((cell,c)=>{const ref=colRef(c)+(r+1);
+      if(cell&&typeof cell==='object'&&typeof cell.v==='number'&&isFinite(cell.v))cells+=`<c r="${ref}"><v>${cell.v}</v></c>`;
+      else{const t=(cell==null)?'':String(cell);if(t==='')return;cells+=`<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${_xmlEsc(t)}</t></is></c>`}});
+    body+=`<row r="${r+1}">${cells}</row>`});
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${body}</sheetData></worksheet>`;
+}
+function buildXlsx(sheetName,rows){
+  const files=[
+    {name:'[Content_Types].xml',bytes:_u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>')},
+    {name:'_rels/.rels',bytes:_u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>')},
+    {name:'xl/workbook.xml',bytes:_u8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${_xmlEsc(sheetName).slice(0,31)}" sheetId="1" r:id="rId1"/></sheets></workbook>`)},
+    {name:'xl/_rels/workbook.xml.rels',bytes:_u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>')},
+    {name:'xl/worksheets/sheet1.xml',bytes:_u8(_sheetXml(rows))},
+  ];
+  return _zip(files);
+}
+function _download(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},150)}
+// Normaliza el CODLOCAL del visor ("241943.0") al cod_local del padron ("241943").
+function _codLocal(id){const s=String(id==null?'':id).trim();return s.endsWith('.0')?s.slice(0,-2):s}
+// Descarga a Excel los colegios que estan entre las unidades expuestas con los filtros y el
+// escenario actuales, cada uno con sus datos clave del padron (data-territorial) cuando cruza.
+function exportColegiosXlsx(){
+  const cols=(v2Last||[]).filter(u=>u.tipo==='colegios');
+  if(!cols.length){alert('No hay colegios entre las unidades expuestas con los filtros y el escenario actuales.\n\nEnciende el dominio Social · tipo Colegios y revisa el territorio y el escenario, luego vuelve a descargar.');return}
+  const P=colegiosPadron||{};
+  const header=['Código local','Nombre','Distrito','Centro poblado','Zona AIS','UGEL','Área de influencia',
+    'Nivel de exposición','Por inundación','Por mov. en masa','Canal de exposición','Distancia a punto crítico (m)','Peligro cercano','Escenario','Riesgo (1–5)','Proyecto de prevención cercano (m)',
+    'Matrícula (alumnos)','Mat. inicial','Mat. primaria','Mat. secundaria',
+    'Estado estructural','Necesidad interv. estructural','Brecha estimada (S/)','Área techada (m²)',
+    'Grupo de prioridad','Orden prioridad nacional','Orden prioridad distrital',
+    'Con proyecto público','Unidad ejecutora','CUI (PI)',
+    'Acceso agua','Acceso alcantarillado','Acceso energía','Acceso internet',
+    'Mant. 2026 beneficiario','Mant. 2026 total (S/)','SíseVe casos','En padrón data-territorial'];
+  const num=x=>{if(x==null||x==='')return '';const n=Number(x);return isFinite(n)?{v:n}:''};
+  const sevTxt=s=>SEV_LABEL[s]||'';
+  const rows=[header];
+  cols.forEach(u=>{const cod=_codLocal(u.id),p=P[cod]||null,h=u._haz||{};
+    rows.push([
+      cod,(p&&p.nombre)||u.nombre||'',u.distrito||'',(p&&p.centro_poblado)||'',(p&&p.zona_ais)||'',(p&&p.ugel)||'',u.tipoInf||'',
+      SEV_LABEL[u._lvl]||'',h.inundacion?sevTxt(h.inundacion.sev):'',h.mov_masa?sevTxt(h.mov_masa.sev):'',u._canal||'',
+      u.dist!=null?{v:Math.round(u.dist)}:'',u.peligro||'',escLabel(state.scenario),u.stars!=null?{v:u.stars}:'',
+      (u.proj&&u.proj.dist!=null&&u.proj.dist<=state.scenario)?{v:Math.round(u.proj.dist)}:'',
+      p?num(p.matricula):num(u.mag),p?num(p.mat_inicial):'',p?num(p.mat_primaria):'',p?num(p.mat_secundaria):'',
+      p?(p.estado_estructural||''):'',p?(p.necesidad_intervencion_estructural||''):'',p?num(p.brecha_estimada_soles):'',p?num(p.area_techada_m2):'',
+      p?(p.grupo_prioridad||''):'',p?(p.orden_prioridad_nacional||''):'',p?(p.orden_prioridad_distrital||''):'',
+      p?(p.con_proyecto_publico||''):'',p?(p.unidad_ejecutora||''):'',p?(p.cui_pi||''):'',
+      p?(p.acceso_agua||''):'',p?(p.acceso_alcantarillado||''):'',p?(p.acceso_energia||''):'',p?(p.acceso_internet||''):'',
+      p?(p.mant_2026_beneficiario||''):'',p?num(p.mant_2026_total_soles):'',p?num(p.siseve_casos):'',p?'Sí':'No']);
+  });
+  const stamp=new Date().toISOString().slice(0,10);
+  _download(buildXlsx('Colegios expuestos',rows),`colegios-expuestos-fen-${stamp}.xlsx`);
+}
+
 async function init(){makeMaps();const EMPTY={type:'FeatureCollection',features:[]};/* Build "solo Unidades expuestas": capas territoriales pesadas (cultivos, road_segments, carreteras + relaciones) NO se cargan; se stubean vacias. */[subzones,criticals,assets.colegios,assets.salud,assets.comedores,assets.puentes,assets.progresol]=await Promise.all([loadJSON('subzonas.geojson'),loadJSON('critical_points.geojson'),loadJSON('colegios.geojson'),loadJSON('salud.geojson'),loadJSON('comedores.geojson'),loadJSON('puentes.geojson'),loadJSON('progresol.geojson')]);relations=[];roadRelations=[];cropRelations=[];roadSegments=EMPTY;roads=EMPTY;crops=EMPTY;indexData();
 const loadWeb=async f=>{try{const r=await fetch(`./data/${f}?v=${BUILD}`,{cache:'no-store'});return r.ok?await r.json():null}catch(e){console.warn(f,e);return null}};
-[puntosTerr,concesiones,corredores,progresolNac,corredoresPC,deptos,unidadesOp,terrComercial,viasDS,viasSociales,viasLocales,canalASocial]=await Promise.all([
+[puntosTerr,concesiones,corredores,progresolNac,corredoresPC,deptos,unidadesOp,terrComercial,viasDS,viasSociales,viasLocales,viasAcceso,canalASocial]=await Promise.all([
   loadWeb('puntos-criticos-territorio-comercial.geojson'),loadWeb('concesiones-unacem.geojson'),
-  loadWeb('corredores-mtc.geojson'),loadWeb('progresol-nacional.geojson'),loadWeb('corredores-fen-puntos.geojson'),loadWeb('peru-departamental.geojson'),loadWeb('unidades-operacionales.geojson'),loadWeb('territorio-comercial-unacem.geojson'),loadWeb('vias-despacho-suministro.geojson'),loadWeb('vias-sociales.geojson'),loadWeb('vias-locales-fen.geojson'),loadWeb('canalA-social.json')]);
+  loadWeb('corredores-mtc.geojson'),loadWeb('progresol-nacional.geojson'),loadWeb('corredores-fen-puntos.geojson'),loadWeb('peru-departamental.geojson'),loadWeb('unidades-operacionales.geojson'),loadWeb('territorio-comercial-unacem.geojson'),loadWeb('vias-despacho-suministro.geojson'),loadWeb('vias-sociales.geojson'),loadWeb('vias-locales-fen.geojson'),loadWeb('vias-acceso-planta-atocongo.geojson'),loadWeb('canalA-social.json')]);
 const canalAVias=await loadWeb('canalA-vias.json');
 if(canalAVias){if(canalASocial)Object.assign(canalASocial,canalAVias);else canalASocial=canalAVias;}
 const canalANeg=await loadWeb('canalA-negocio.json');
@@ -757,6 +888,8 @@ if(canalANeg){if(canalASocial)Object.assign(canalASocial,canalANeg);else canalAS
 // Elementos expuestos SIGRID: se cargan y se registran como tipos del dominio social (contrato V4 §6).
 [eeUnidades,eeCatalogo]=await Promise.all([loadWeb('ee_unidades.json'),loadWeb('ee_catalogo.json')]);
 if(eeCatalogo)for(const c of eeCatalogo){if(!V2_TYPES.social.includes(c.key))V2_TYPES.social.push(c.key);if(!(c.key in V2_LABEL))V2_LABEL[c.key]=c.label;}
+// Datos clave del padron de escuelas (data-territorial), para la descarga Excel de colegios expuestos.
+colegiosPadron=await loadWeb('colegios-padron.json')||{};
 buildV2Index();
-renderFilters();setupControls();updateAll(true);const hv=(location.hash||'').replace('#','');if(['territorial','detail','prioriza'].includes(hv)){const tab=document.querySelector(`.tab[data-view="${hv}"]`);if(tab)tab.click()}}
+renderFilters();setupControls();wireV2Search();updateAll(true);const hv=(location.hash||'').replace('#','');if(['territorial','detail','prioriza'].includes(hv)){const tab=document.querySelector(`.tab[data-view="${hv}"]`);if(tab)tab.click()}}
 init().catch(e=>{console.error(e);document.body.insertAdjacentHTML('beforeend',`<div style="position:fixed;inset:20px;background:white;z-index:99999;padding:30px;border:3px solid red"><b>Error cargando la V2:</b><pre>${escapeHtml(e.stack||e.message)}</pre></div>`)})

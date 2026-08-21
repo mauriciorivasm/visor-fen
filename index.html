@@ -6,7 +6,7 @@
 <title>Impacto potencial FEN | UNACEM · V2.3</title>
 <link rel="preconnect" href="https://unpkg.com">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="styles.css?v=2.3.0"/>
+<link rel="stylesheet" href="styles.css?v=2.3.3"/>
 </head>
 <body>
 <header class="topbar">
@@ -16,7 +16,7 @@
   </div></div>
 </header>
 <div class="warning">Estimación de exposición potencial por proximidad espacial. No representa daño confirmado.<span class="build-badge">V2.3</span></div>
-<!-- Build "solo Unidades expuestas": barra de pestañas eliminada; solo se muestra la vista de detalle. -->
+<!-- Build "solo Unidades expuestas": barra de pestañas eliminada; la vista de detalle ya viene activa desde web/. -->
 <main>
 <section id="territorialView" class="view three-col">
   <aside class="sidebar left-sidebar">
@@ -38,11 +38,18 @@
     <section class="panel"><h3 class="panel-h">2 · Dominio</h3><div class="panel-body" id="v2Domain"></div></section>
     <section class="panel"><h3 class="panel-h">3 · Tipo de unidad</h3><div class="panel-body" id="v2Types"></div></section>
     <section class="panel"><h3 class="panel-h">4 · Peligro</h3><div class="panel-body" id="v2Hazard"></div></section>
+    <section class="panel"><h3 class="panel-h">5 · Buscar vía / río</h3><div class="panel-body">
+      <input type="search" id="v2QVia" placeholder="Nombre de vía (p. ej. Pachacútec)" autocomplete="off" list="v2ViaList" style="width:100%;box-sizing:border-box;margin-bottom:6px">
+      <datalist id="v2ViaList"></datalist>
+      <input type="search" id="v2QRio" placeholder="Nombre de río (p. ej. Lurín, Rímac)" autocomplete="off" list="v2RioList" style="width:100%;box-sizing:border-box">
+      <datalist id="v2RioList"></datalist>
+      <p class="muted" style="margin:6px 0 0">Filtra el ranking y el mapa por nombre de vía, o por el río / quebrada de su punto crítico.</p>
+    </div></section>
     <details><summary>Capas pendientes</summary><div class="panel-body"><label class="pend-slot"><input type="checkbox" disabled> Zonas de susceptibilidad <span class="pend">pendiente</span></label><label class="pend-slot"><input type="checkbox" disabled> Desbordes INDECI <span class="pend">pendiente</span></label><p class="muted">Se poblarán cuando llegue el dato (ver contrato V4).</p></div></details>
   </aside>
   <div class="map-wrap"><div id="mapDetail"></div><button id="resetDetail" class="map-reset" title="Ajustar mapa a las unidades visibles">⌂ Ajustar mapa</button><div class="kpis" id="detailKpis"></div></div>
   <aside class="sidebar exposure-list-panel">
-    <div class="list-head"><div><h2>Ranking de afectación</h2><p id="v2Subtitle">Unidades expuestas, ordenadas por nivel de afectación.</p></div><span id="v2Count" class="pill">0</span></div>
+    <div class="list-head"><div><h2>Ranking de afectación</h2><p id="v2Subtitle">Unidades expuestas, ordenadas por nivel de afectación.</p></div><div class="list-head-actions"><span id="v2Count" class="pill">0</span><button id="v2Export" class="export-btn" title="Descarga en Excel los colegios expuestos con los filtros y el escenario actuales, cada uno con sus datos clave del padrón (data-territorial)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 4 5-4"/><path d="M5 20h14"/></svg>Colegios · Excel</button></div></div>
     <div id="v2Action"></div>
     <div id="v2List" class="affected-list"></div>
   </aside>
@@ -78,5 +85,5 @@
 <footer class="srcbar" title="Fuente de datos: Inventario Nacional de Puntos Críticos de la Autoridad Nacional del Agua (ANA); fichas técnicas referenciales (FTR-CB-PREV) de reconocimiento de campo, campañas 2015-2026, publicadas en la biblioteca del SIGRID (CENEPRED). Zonas de susceptibilidad: CENEPRED / SIGRID. Recorte al territorio comercial UNACEM."><b>Fuente de datos:</b> Inventario Nacional de Puntos Críticos de la Autoridad Nacional del Agua (ANA) · fichas técnicas referenciales (FTR-CB-PREV), campañas 2015-2026, biblioteca del SIGRID (CENEPRED) · Susceptibilidad: CENEPRED / SIGRID · Recorte al territorio comercial UNACEM.</footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
-<script src="app.js?v=2.3.0"></script>
+<script src="app.js?v=2.3.3"></script>
 </body></html>
