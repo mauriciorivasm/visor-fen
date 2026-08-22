@@ -101,7 +101,7 @@ function renderSelectedPoint(){const box=document.getElementById('selectedPoint'
 function fitMapToZones(map){if(map===mp&&state.prioScope==='comercial'){if(tcBounds&&tcBounds.isValid())map.fitBounds(tcBounds,{padding:[20,20],maxZoom:12});return}if(map===md){if(v2Bounds&&v2Bounds.isValid())map.fitBounds(v2Bounds,{padding:[20,20],maxZoom:13});return}const feats=(lastCalc?.zones||visibleZoneFeatures());if(!feats.length)return;const temp=L.geoJSON({type:'FeatureCollection',features:feats});const b=temp.getBounds();if(b.isValid())map.fitBounds(b,{padding:[20,20],maxZoom:13})}
 function resetActiveMap(view){setTimeout(()=>{const map=view==='territorial'?mt:(view==='prioriza'?mp:md);if(!map)return;map.invalidateSize();fitMapToZones(map)},100)}
 function updateAll(fit=false){/* Build "solo Unidades expuestas": no corre motor territorial ni cartera; solo renderExpuestas(). */renderExpuestas();if(fit){fitMapToZones(md)}}
-function setupControls(){document.getElementById('metricSelect').value=state.metric;document.getElementById('metricSelect').onchange=e=>{state.metric=e.target.value;updateAll(false)};document.getElementById('scenarioBtns').onclick=e=>{const m=e.target.dataset.m;if(!m)return;state.scenario=Number(m);document.querySelectorAll('#scenarioBtns button').forEach(b=>b.classList.toggle('active',Number(b.dataset.m)===state.scenario));updateAll(false)};const amEl=document.getElementById('analysisMode');if(amEl)amEl.onchange=e=>{state.mode=e.target.value;state.singleCritical=null;updateAll(false)};const lcEl=document.getElementById('layerChecks');if(lcEl){lcEl.innerHTML=Object.keys(state.layers).map(k=>`<label><input type="checkbox" data-layer="${k}" ${state.layers[k]?'checked':''}>${typeLabels[k]}</label>`).join('');document.querySelectorAll('#layerChecks input').forEach(x=>x.onchange=()=>{state.layers[x.dataset.layer]=x.checked;updateAll(false)})}document.getElementById('resetTerritorial').onclick=()=>resetActiveMap('territorial');document.getElementById('resetDetail').onclick=()=>resetActiveMap('detail');const v2sp=document.getElementById('v2SoloProyecto');if(v2sp)v2sp.onchange=()=>{v2.soloProyecto=v2sp.checked;renderExpuestas()};const viewIds={territorial:'territorialView',detail:'detailView',prioriza:'priorizaView'};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(viewIds[b.dataset.view]).classList.add('active');location.hash=b.dataset.view;if(b.dataset.view==='prioriza'){renderPrioriza();resetActiveMap('prioriza')}else resetActiveMap(b.dataset.view)});document.getElementById('resetPrioriza').onclick=()=>resetActiveMap('prioriza');const v2exp=document.getElementById('v2Export');if(v2exp)v2exp.onclick=exportColegiosCsv;
+function setupControls(){document.getElementById('metricSelect').value=state.metric;document.getElementById('metricSelect').onchange=e=>{state.metric=e.target.value;updateAll(false)};document.getElementById('scenarioBtns').onclick=e=>{const m=e.target.dataset.m;if(!m)return;state.scenario=Number(m);document.querySelectorAll('#scenarioBtns button').forEach(b=>b.classList.toggle('active',Number(b.dataset.m)===state.scenario));updateAll(false)};const amEl=document.getElementById('analysisMode');if(amEl)amEl.onchange=e=>{state.mode=e.target.value;state.singleCritical=null;updateAll(false)};const lcEl=document.getElementById('layerChecks');if(lcEl){lcEl.innerHTML=Object.keys(state.layers).map(k=>`<label><input type="checkbox" data-layer="${k}" ${state.layers[k]?'checked':''}>${typeLabels[k]}</label>`).join('');document.querySelectorAll('#layerChecks input').forEach(x=>x.onchange=()=>{state.layers[x.dataset.layer]=x.checked;updateAll(false)})}document.getElementById('resetTerritorial').onclick=()=>resetActiveMap('territorial');document.getElementById('resetDetail').onclick=()=>resetActiveMap('detail');const v2sp=document.getElementById('v2SoloProyecto');if(v2sp)v2sp.onchange=()=>{v2.soloProyecto=v2sp.checked;renderExpuestas()};const viewIds={territorial:'territorialView',detail:'detailView',prioriza:'priorizaView'};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(viewIds[b.dataset.view]).classList.add('active');location.hash=b.dataset.view;if(b.dataset.view==='prioriza'){renderPrioriza();resetActiveMap('prioriza')}else resetActiveMap(b.dataset.view)});document.getElementById('resetPrioriza').onclick=()=>resetActiveMap('prioriza');const v2exp=document.getElementById('v2Export');if(v2exp)v2exp.onclick=exportColegiosXlsx;
 const scopeBtns=document.getElementById('prioScopeBtns');if(scopeBtns)scopeBtns.onclick=e=>{const s=e.target.dataset.scope;if(!s||s===state.prioScope)return;state.prioScope=s;priorizaSelected=null;scopeBtns.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.scope===s));const inf=s==='influencia';document.getElementById('prioInfluenciaOnly').classList.toggle('hidden',!inf);document.getElementById('prioComercialFiltros').classList.toggle('hidden',inf);document.getElementById('scopeHint').textContent=inf?'55 proyectos de prevención en los 13 distritos de influencia, puntuados por proximidad a los activos mapeados.':'5,521 puntos críticos del inventario de la ANA en el mercado UNACEM, puntuados por la exposición declarada en la ficha + FONDES + emergencia.';if(inf){renderFilters()}renderPrioriza();resetActiveMap('prioriza')}}
 
 /* ===== V3 prototipo · Cartera priorizada de proyectos de intervención ===== */
@@ -794,21 +794,60 @@ function renderExpuestas(){if(!document.getElementById('detailView')||!md)return
   v2ActionPanel();}
 //#endregion MOD2-VIEW
 
-/* ===== Descarga CSV de los colegios del ranking ===== */
+/* ===== Descarga Excel (.xlsx) de los colegios del ranking ===== */
 // La descarga es 100% en el navegador: NO necesita servidor ni base de datos. Los datos ya
-// vienen embebidos en la página (colegios.geojson + colegios-padron.json). Genera un CSV
-// (UTF-8 con BOM, separador ';' — apto para Excel es-PE) con TODOS los colegios del ranking
-// actual (los filtros y el escenario que tengas puestos), cada uno con sus datos clave del
-// padrón (data-territorial) cuando cruza por cod_local.
+// vienen embebidos en la página (colegios.geojson + colegios-padron.json). Genera un .xlsx
+// nativo (Excel lo abre sin advertencias, acentos y códigos como texto) con TODOS los colegios
+// del ranking actual (los filtros y el escenario que tengas puestos), cada uno con sus datos
+// clave del padrón (data-territorial) cuando cruza por cod_local.
+// Escritor .xlsx mínimo y autocontenido (sin dependencias ni CDN): ZIP en modo STORE + CRC32,
+// celdas de texto inline y numéricas.
+const _CRC_TABLE=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function _crc32(bytes){let c=0xFFFFFFFF;for(let i=0;i<bytes.length;i++)c=_CRC_TABLE[(c^bytes[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function _u8(s){return new TextEncoder().encode(s)}
+function _zip(files){
+  const parts=[],cd=[];let offset=0;
+  const u16=n=>[n&0xFF,(n>>8)&0xFF],u32=n=>[n&0xFF,(n>>8)&0xFF,(n>>16)&0xFF,(n>>24)&0xFF];
+  for(const f of files){
+    const nameB=_u8(f.name),data=f.bytes,crc=_crc32(data);
+    const local=[].concat([0x50,0x4b,0x03,0x04],u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameB.length),u16(0));
+    parts.push(new Uint8Array(local),nameB,data);
+    const cdh=[].concat([0x50,0x4b,0x01,0x02],u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameB.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset));
+    cd.push(new Uint8Array(cdh),nameB);
+    offset+=local.length+nameB.length+data.length;
+  }
+  let cdSize=0;cd.forEach(b=>cdSize+=b.length);
+  const end=[].concat([0x50,0x4b,0x05,0x06],u16(0),u16(0),u16(files.length),u16(files.length),u32(cdSize),u32(offset),u16(0));
+  return new Blob([...parts,...cd,new Uint8Array(end)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+function _xmlEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+// rows = arreglo de filas; cada celda: {v:number} = numérica, cualquier otra cosa = texto.
+function _sheetXml(rows){
+  const colRef=i=>{let s='',n=i+1;while(n){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)}return s};
+  let body='';
+  rows.forEach((row,r)=>{let cells='';
+    row.forEach((cell,c)=>{const ref=colRef(c)+(r+1);
+      if(cell&&typeof cell==='object'&&typeof cell.v==='number'&&isFinite(cell.v))cells+=`<c r="${ref}"><v>${cell.v}</v></c>`;
+      else{const t=(cell==null)?'':String(cell);if(t==='')return;cells+=`<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${_xmlEsc(t)}</t></is></c>`}});
+    body+=`<row r="${r+1}">${cells}</row>`});
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${body}</sheetData></worksheet>`;
+}
+function buildXlsx(sheetName,rows){
+  const files=[
+    {name:'[Content_Types].xml',bytes:_u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>')},
+    {name:'_rels/.rels',bytes:_u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>')},
+    {name:'xl/workbook.xml',bytes:_u8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${_xmlEsc(sheetName).slice(0,31)}" sheetId="1" r:id="rId1"/></sheets></workbook>`)},
+    {name:'xl/_rels/workbook.xml.rels',bytes:_u8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>')},
+    {name:'xl/worksheets/sheet1.xml',bytes:_u8(_sheetXml(rows))},
+  ];
+  return _zip(files);
+}
 function _download(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},250)}
 // Normaliza el CODLOCAL del visor ("241943.0") al cod_local del padron ("241943").
 function _codLocal(id){const s=String(id==null?'':id).trim();return s.endsWith('.0')?s.slice(0,-2):s}
-// Un campo CSV: entrecomilla si trae separador, comillas o salto de línea.
-function _csvCell(v){if(v==null)return '';let s=String(v);return /[";\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
-function _csv(rows){return '﻿'+rows.map(r=>r.map(_csvCell).join(';')).join('\r\n')}
 // Colegios del ranking actual (toda la lista visible con los filtros/escenario vigentes).
 function v2ColegiosVisibles(){return (v2Last||[]).filter(u=>u.tipo==='colegios')}
-function exportColegiosCsv(){
+function exportColegiosXlsx(){
   const cols=v2ColegiosVisibles();
   if(!cols.length){alert('No hay colegios en el ranking con los filtros y el escenario actuales.\n\nEnciende el dominio Social y el tipo Colegios (panel izquierdo), revisa el territorio y el escenario, y vuelve a descargar.');return}
   const P=colegiosPadron||{};
@@ -820,28 +859,28 @@ function exportColegiosCsv(){
     'Con proyecto público','Unidad ejecutora','CUI (PI)',
     'Acceso agua','Acceso alcantarillado','Acceso energía','Acceso internet',
     'Mant. 2026 beneficiario','Mant. 2026 total (S/)','SíseVe casos','En padrón data-territorial'];
-  const int=x=>{if(x==null||x==='')return '';const n=Number(x);return isFinite(n)?Math.round(n):''};
+  const num=x=>{if(x==null||x==='')return '';const n=Number(x);return isFinite(n)?{v:Math.round(n)}:''};
   const sevTxt=s=>SEV_LABEL[s]||'';
   const rows=[header];
   cols.forEach(u=>{const cod=_codLocal(u.id),p=P[cod]||null,h=u._haz||{};
     rows.push([
       cod,(p&&p.nombre)||u.nombre||'',u.distrito||'',(p&&p.centro_poblado)||'',(p&&p.zona_ais)||'',(p&&p.ugel)||'',u.tipoInf||'',
       SEV_LABEL[u._lvl]||'',h.inundacion?sevTxt(h.inundacion.sev):'',h.mov_masa?sevTxt(h.mov_masa.sev):'',u._canal||'',
-      u.dist!=null?Math.round(u.dist):'',u.peligro||'',escLabel(state.scenario),u.stars!=null?u.stars:'',
-      (u.proj&&u.proj.dist!=null&&u.proj.dist<=state.scenario)?Math.round(u.proj.dist):'',
-      p?int(p.matricula):int(u.mag),p?int(p.mat_inicial):'',p?int(p.mat_primaria):'',p?int(p.mat_secundaria):'',
-      p?(p.estado_estructural||''):'',p?(p.necesidad_intervencion_estructural||''):'',p?int(p.brecha_estimada_soles):'',p?int(p.area_techada_m2):'',
+      u.dist!=null?{v:Math.round(u.dist)}:'',u.peligro||'',escLabel(state.scenario),u.stars!=null?{v:u.stars}:'',
+      (u.proj&&u.proj.dist!=null&&u.proj.dist<=state.scenario)?{v:Math.round(u.proj.dist)}:'',
+      p?num(p.matricula):num(u.mag),p?num(p.mat_inicial):'',p?num(p.mat_primaria):'',p?num(p.mat_secundaria):'',
+      p?(p.estado_estructural||''):'',p?(p.necesidad_intervencion_estructural||''):'',p?num(p.brecha_estimada_soles):'',p?num(p.area_techada_m2):'',
       p?(p.grupo_prioridad||''):'',p?(p.orden_prioridad_nacional||''):'',p?(p.orden_prioridad_distrital||''):'',
       p?(p.con_proyecto_publico||''):'',p?(p.unidad_ejecutora||''):'',p?(p.cui_pi||''):'',
       p?(p.acceso_agua||''):'',p?(p.acceso_alcantarillado||''):'',p?(p.acceso_energia||''):'',p?(p.acceso_internet||''):'',
-      p?(p.mant_2026_beneficiario||''):'',p?int(p.mant_2026_total_soles):'',p?int(p.siseve_casos):'',p?'Sí':'No']);
+      p?(p.mant_2026_beneficiario||''):'',p?num(p.mant_2026_total_soles):'',p?num(p.siseve_casos):'',p?'Sí':'No']);
   });
   const stamp=new Date().toISOString().slice(0,10);
-  _download(new Blob([_csv(rows)],{type:'text/csv;charset=utf-8'}),`colegios-expuestos-fen-${stamp}.csv`);
+  _download(buildXlsx('Colegios expuestos',rows),`colegios-expuestos-fen-${stamp}.xlsx`);
 }
 // Botón del pie: refleja cuántos colegios hay en el ranking y se habilita solo si hay al menos uno.
 // Envuelve renderExpuestas (región MOD2) SIN editar esa región.
-function updateExportBtn(){const n=v2ColegiosVisibles().length,btn=document.getElementById('v2Export');if(!btn)return;btn.disabled=n===0;const lbl=btn.querySelector('.dl-lbl');if(lbl)lbl.textContent=n?`Descargar lista · ${n} colegio${n===1?'':'s'} (CSV)`:'Descargar lista (CSV)'}
+function updateExportBtn(){const n=v2ColegiosVisibles().length,btn=document.getElementById('v2Export');if(!btn)return;btn.disabled=n===0;const lbl=btn.querySelector('.dl-lbl');if(lbl)lbl.textContent=n?`Descargar lista · ${n} colegio${n===1?'':'s'} (Excel)`:'Descargar lista (Excel)'}
 const _renderExpuestasBase=renderExpuestas;
 renderExpuestas=function(){_renderExpuestasBase.apply(this,arguments);updateExportBtn()};
 
