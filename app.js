@@ -585,8 +585,14 @@ function renderV2Domain(){const box=document.getElementById('v2Domain');if(!box)
   box.querySelectorAll('[data-v2dom]').forEach(el=>el.onchange=()=>{const d=el.dataset.v2dom;if(el.checked){v2.dom.add(d);V2_TYPES[d].forEach(t=>v2.tipo.add(t))}else{v2.dom.delete(d);V2_TYPES[d].forEach(t=>v2.tipo.delete(t))}renderExpuestas()})}
 function renderV2Types(){const box=document.getElementById('v2Types');if(!box)return;
   const doms=['operacional','comercial','social'].filter(d=>v2.dom.has(d)),allTypes=doms.flatMap(d=>V2_TYPES[d]);
+  const nSel=allTypes.filter(t=>v2.tipo.has(t)).length;
   const groups=doms.map(d=>`<div class="type-group"><div class="filter-label">${escapeHtml(V2_DOMLABEL[d])}</div><div class="checks">`+V2_TYPES[d].map(t=>`<label><input type="checkbox" data-v2t="${t}" ${v2.tipo.has(t)?'checked':''}>${escapeHtml(V2_LABEL[t])}</label>`).join('')+`</div></div>`).join('');
-  box.innerHTML=chkBar('tipo')+(groups||`<p class="muted">Activa un dominio para ver sus tipos.</p>`);
+  const body=chkBar('tipo')+(groups||`<p class="muted">Activa un dominio para ver sus tipos.</p>`);
+  // Desplegable compacto (colapsado por defecto), como el visor VMT: "N tipos". Preserva el
+  // estado abierto/cerrado entre re-renders para no colapsarse al marcar un tipo.
+  const wasOpen=box.querySelector('.terr-drop')?box.querySelector('.terr-drop').open:false;
+  const label=allTypes.length?`${nSel} tipo${nSel===1?'':'s'}`:'Sin tipos';
+  box.innerHTML=`<details class="terr-drop"${wasOpen?' open':''}><summary>${label}<span class="sel-count">${nSel} de ${allTypes.length}</span></summary><div class="terr-drop-body">${body}</div></details>`;
   onCA(box,'tipo',()=>{allTypes.forEach(t=>v2.tipo.add(t));renderExpuestas()},()=>{v2.tipo.clear();renderExpuestas()});
   box.querySelectorAll('[data-v2t]').forEach(el=>el.onchange=()=>{const t=el.dataset.v2t;el.checked?v2.tipo.add(t):v2.tipo.delete(t);renderExpuestas()})}
 function renderV2Hazard(){const box=document.getElementById('v2Hazard');if(!box)return;const niv=HAZ_NIVELES;
