@@ -7,16 +7,12 @@
 <link rel="preconnect" href="https://unpkg.com">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="styles.css?v=2.3.3"/>
+<link rel="stylesheet" href="styles-vmt.css?v=fen1"/>
 </head>
 <body>
 <header class="topbar">
   <div class="brand"><img src="assets/unacem-logo.png" alt="UNACEM"/><div class="brand-divider"></div><div><strong>IMPACTO POTENCIAL FEN</strong><span>Infraestructura, servicios y población expuesta</span></div></div>
-  <div class="scenario"><span>Escenario de exposición</span><div class="segmented" id="scenarioBtns">
-    <button data-m="250">250 m</button><button class="active" data-m="500">500 m</button><button data-m="1000">1 km</button><button data-m="1500">1.5 km</button><button data-m="2000">2 km</button>
-  </div></div>
 </header>
-<div class="warning">Estimación de exposición potencial por proximidad espacial. No representa daño confirmado.<span class="build-badge">V2.3</span></div>
-<!-- Build "solo Unidades expuestas": barra de pestañas eliminada; la vista de detalle ya viene activa desde web/. -->
 <main>
 <section id="territorialView" class="view three-col">
   <aside class="sidebar left-sidebar">
@@ -38,7 +34,14 @@
     <section class="panel"><h3 class="panel-h">2 · Dominio</h3><div class="panel-body" id="v2Domain"></div></section>
     <section class="panel"><h3 class="panel-h">3 · Tipo de unidad</h3><div class="panel-body" id="v2Types"></div></section>
     <section class="panel"><h3 class="panel-h">4 · Peligro</h3><div class="panel-body" id="v2Hazard"></div></section>
-    <section class="panel"><h3 class="panel-h">5 · Buscar vía / río</h3><div class="panel-body">
+    <section class="panel"><h3 class="panel-h">5 · Escenario de exposición</h3><div class="panel-body">
+      <div class="scen-block">
+        <div class="scen-head"><span class="filter-label">Radio de proximidad</span><span class="scen-val" id="scenVal">500 m</span></div>
+        <input type="range" class="scen-range" id="scenRange" min="0" max="4" step="1" value="1" aria-label="Radio del escenario de exposición">
+        <div class="scen-ticks"><span>250 m</span><span>500 m</span><span>1 km</span><span>1.5 km</span><span>2 km</span></div>
+      </div>
+    </div></section>
+    <section class="panel"><h3 class="panel-h">6 · Buscar vía / río</h3><div class="panel-body">
       <input type="search" id="v2QVia" placeholder="Nombre de vía (p. ej. Pachacútec)" autocomplete="off" list="v2ViaList" style="width:100%;box-sizing:border-box;margin-bottom:6px">
       <datalist id="v2ViaList"></datalist>
       <input type="search" id="v2QRio" placeholder="Nombre de río (p. ej. Lurín, Rímac)" autocomplete="off" list="v2RioList" style="width:100%;box-sizing:border-box">
@@ -85,7 +88,7 @@
   </aside>
 </section>
 </main>
-<footer class="srcbar" title="Fuente de datos: Inventario Nacional de Puntos Críticos de la Autoridad Nacional del Agua (ANA); fichas técnicas referenciales (FTR-CB-PREV) de reconocimiento de campo, campañas 2015-2026, publicadas en la biblioteca del SIGRID (CENEPRED). Zonas de susceptibilidad: CENEPRED / SIGRID. Recorte al territorio comercial UNACEM."><b>Fuente de datos:</b> Inventario Nacional de Puntos Críticos de la Autoridad Nacional del Agua (ANA) · fichas técnicas referenciales (FTR-CB-PREV), campañas 2015-2026, biblioteca del SIGRID (CENEPRED) · Susceptibilidad: CENEPRED / SIGRID · Recorte al territorio comercial UNACEM.</footer>
+<footer class="srcbar" title="Fuente de datos: Inventario Nacional de Puntos Críticos de la Autoridad Nacional del Agua (ANA); fichas técnicas referenciales (FTR-CB-PREV) de reconocimiento de campo, campañas 2015-2026, publicadas en la biblioteca del SIGRID (CENEPRED). Zonas de susceptibilidad: CENEPRED / SIGRID. Recorte al territorio comercial UNACEM."><b>Fuente de datos:</b> Inventario Nacional de Puntos Críticos de la Autoridad Nacional del Agua (ANA) · fichas técnicas referenciales (FTR-CB-PREV), campañas 2015-2026, biblioteca del SIGRID (CENEPRED) · Susceptibilidad: CENEPRED / SIGRID · Recorte al territorio comercial UNACEM · Exposición potencial por proximidad espacial, no representa daño confirmado.</footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
 <script src="app.js?v=2.3.3"></script>
