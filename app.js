@@ -618,13 +618,20 @@ function renderV2Hazard(){const box=document.getElementById('v2Hazard');if(!box)
 function renderV2Territory(){const box=document.getElementById('v2Territory');if(!box)return;
   const drop=(label,items,sel,attr,qkey)=>{const q=depKey(v2.q[qkey]||'');
     return `<details class="terr-drop"${sel.size||q?' open':''}><summary>${escapeHtml(label)}<span class="sel-count">${sel.size?sel.size+' sel.':'todas'}</span></summary><div class="terr-drop-body"><input class="terr-search" type="text" placeholder="Buscar…" data-q="${escapeAttr(qkey)}" value="${escapeAttr(v2.q[qkey]||'')}">`+chkBar(qkey)+`<div class="checks terr-opts">`+(items.length?items.map(it=>{const lab=depKey(it.label),hide=q&&!lab.includes(q);return `<label class="terr-opt${it.dis?' opt-off':''}" data-lab="${escapeAttr(lab)}"${hide?' style="display:none"':''}><input type="checkbox" data-${attr}="${escapeAttr(it.v)}" ${sel.has(it.v)?'checked':''} ${it.dis?'disabled':''}>${escapeHtml(it.label)}${it.n!=null?`<span class="opt-n">${it.n?fmt(it.n):'—'}</span>`:''}</label>`}).join(''):'<p class="muted">Sin opciones.</p>')+`</div><p class="muted terr-nomatch" style="display:none">Sin coincidencias.</p></div></details>`};
-  const cntDep=new Map();v2Units().forEach(u=>{if(u.dep)cntDep.set(depKey(u.dep),(cntDep.get(depKey(u.dep))||0)+1)});
-  const depItems=PERU_DEP.map(d=>{const k=depKey(d),n=cntDep.get(k)||0;return {v:k,label:d,n,dis:n===0}});
+  // Solo se listan las opciones que SÍ tienen unidades expuestas con los filtros y el escenario
+  // vigentes (las que no aplican no aparecen, no salen deshabilitadas). Ej.: con "Solo territorio
+  // social" el Departamento muestra solo Lima y Junín.
+  const cntDep=new Map(),cntDist=new Map(),cntZona=new Map();
+  v2Units().forEach(u=>{if(u.dep)cntDep.set(depKey(u.dep),(cntDep.get(depKey(u.dep))||0)+1);
+    if(u.distrito)cntDist.set(u.distrito,(cntDist.get(u.distrito)||0)+1);
+    if(u.zona&&u.zona!=='Todas Zonas')cntZona.set(u.zona,(cntZona.get(u.zona)||0)+1)});
+  const depItems=PERU_DEP.map(d=>({v:depKey(d),label:d,n:cntDep.get(depKey(d))||0})).filter(it=>it.n>0);
+  [...v2.dep].forEach(d=>{if(!depItems.some(it=>it.v===d))v2.dep.delete(d)});
   const dists=INFLU?INFLU.dists:[];
-  const distF=dists.filter(d=>!v2.dep.size||v2.dep.has(depKey(d.dep)));
+  const distF=dists.filter(d=>(!v2.dep.size||v2.dep.has(depKey(d.dep)))&&(cntDist.get(d.dist)||0)>0);
   [...v2.dist].forEach(d=>{if(!distF.some(x=>x.dist===d))v2.dist.delete(d)});
-  const distItems=distF.map(d=>({v:d.dist,label:titleCase(d.dist)}));
-  const zonaItems=[];distF.forEach(d=>{if(v2.dist.size&&!v2.dist.has(d.dist))return;d.zonas.forEach(z=>{if(z.zona&&z.zona!=='Todas Zonas')zonaItems.push({v:z.zona,label:z.zona})})});
+  const distItems=distF.map(d=>({v:d.dist,label:titleCase(d.dist),n:cntDist.get(d.dist)||0}));
+  const zonaItems=[];distF.forEach(d=>{if(v2.dist.size&&!v2.dist.has(d.dist))return;d.zonas.forEach(z=>{if(z.zona&&z.zona!=='Todas Zonas'&&(cntZona.get(z.zona)||0)>0)zonaItems.push({v:z.zona,label:z.zona,n:cntZona.get(z.zona)||0})})});
   const zset=new Set(zonaItems.map(z=>z.v));[...v2.zona].forEach(z=>{if(!zset.has(z))v2.zona.delete(z)});
   // Accesos rápidos: aíslan la vista a un solo territorio (dominio) — social o comercial.
   const soloS=v2.dom.size===1&&v2.dom.has('social'),soloC=v2.dom.size===1&&v2.dom.has('comercial');
